@@ -7,6 +7,10 @@ const orders = require("./orders");
 const image = require("./image");
 const offers = require("./offers");
 const shipping = require("./shipping");
+const bundles = require("./bundles");
+const collections = require("./collections");
+const components = require("./components");
+const customAccessories = require("./customAccessories");
 
 const router = express.Router();
 
@@ -17,6 +21,10 @@ router.use("/orders", orders);
 router.use("/colors", colors);
 router.use("/image", image);
 router.use("/shipping", shipping);
+router.use("/bundles", bundles);
+router.use("/collections", collections);
+router.use("/components", components);
+router.use("/custom-accessories", customAccessories);
 router.use("/", offers);
 
 module.exports = router;

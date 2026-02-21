@@ -1,7 +1,6 @@
 const { connectDB } = require("../core/db");
 const { ensureId } = require("./helpers");
 
-// Match seed.js collection naming (lowercase)
 const COLLECTION = "products";
 
 async function createProduct(payload) {
@@ -16,11 +15,13 @@ async function createProduct(payload) {
     slug: payload.slug,
     description: payload.description,
     basePrice: payload.basePrice,
-    category: Number(payload.category), // Ensure category is stored as number
+    category: Number(payload.category),
     tags: Array.isArray(payload.tags) ? payload.tags : [],
-    variants: Array.isArray(payload.variants) ? payload.variants : [],
+    color: payload.color,
+    image: payload.image,
     isFeatured: !!payload.isFeatured,
     isActive: payload.isActive !== undefined ? !!payload.isActive : true,
+    discount: payload.discount || null,
     createdAt: payload.createdAt || now,
     updatedAt: payload.updatedAt || now,
   };
@@ -42,7 +43,6 @@ async function listProducts(filter = { isActive: true }, options = {}) {
   const db = await connectDB();
   const products = db.collection(COLLECTION);
   const { limit = 50, skip = 0, sort = { createdAt: -1 } } = options;
-  // If filtering by category, ensure it's a number
   const filterCopy = { ...filter };
   if (filterCopy.category) {
     filterCopy.category = Number(filterCopy.category);
@@ -60,7 +60,6 @@ async function updateProduct(id, updates) {
 
   const set = { ...updates, updatedAt: new Date() };
 
-  // Use updateOne then fetch the document to avoid driver-specific findOneAndUpdate
   const result = await products.updateOne({ _id: id }, { $set: set });
   if (result.matchedCount === 0) {
     const err = new Error("Product not found");
@@ -72,7 +71,6 @@ async function updateProduct(id, updates) {
   return value;
 }
 
-// Soft delete: set isActive=false
 async function deleteProduct(id) {
   const db = await connectDB();
   const products = db.collection(COLLECTION);
@@ -80,7 +78,6 @@ async function deleteProduct(id) {
 
   if (!Number.isInteger(id)) throw new Error("id must be integer");
 
-  // Perform an actual delete. Return 404 if not found.
   const result = await products.deleteOne({ _id: id });
   if (!result || result.deletedCount === 0) {
     const err = new Error("Product not found");
@@ -89,20 +86,13 @@ async function deleteProduct(id) {
     throw err;
   }
 
-  // Remove this product from all "processing" orders
-  // We search for orders with this productId in the items array
   const affectedOrders = await orders
-    .find({
-      orderStatus: "processing",
-      "items.productId": id,
-    })
+    .find({ orderStatus: "processing", "items.productId": id })
     .toArray();
 
   for (const order of affectedOrders) {
     const newItems = order.items.filter((it) => it.productId !== id);
     if (newItems.length === 0) {
-      // If no items left, we could either delete the order or just leave it empty.
-      // Usually, an empty order is bad. Let's delete it if it becomes empty.
       await orders.deleteOne({ _id: order._id });
     } else {
       const subtotal = newItems.reduce(

@@ -1,12 +1,17 @@
 import { IAddress } from "./user";
 
+export type OrderItemType = "product" | "bundle";
+
 export interface IOrderItem {
-  productId: number;
+  type: OrderItemType;
+  productId?: number; // For product
+  bundleId?: string; // For bundle
   name: string; // Snapshot of name
-  sku: string; // The specific variant bought
   quantity: number;
   priceAtPurchase: number;
+  originalPrice?: number; // For bundle, sum of product prices
   image: string;
+  color?: string;
 }
 
 export interface IOrder {
@@ -28,6 +33,7 @@ export interface IOrder {
   shippingFee: number;
   discountTotal?: number;
   promoCode?: string;
+  originalTotal: number; // Sum of original prices (products/bundles)
   total: number;
   trackingNumber?: string;
   placedAt: Date;

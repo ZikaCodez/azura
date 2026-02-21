@@ -8,14 +8,6 @@ export interface IDiscount {
   endDate?: Date;
 }
 
-export interface IVariant {
-  sku: string; // e.g., "TSHIRT-BLU-L"
-  color: IColor["_id"]; // color id, lowercase name
-  size: "S" | "M" | "L" | "XL" | "XXL" | "OS";
-  priceModifier: number; // Added to basePrice
-  images: string[]; // Color-specific photos
-}
-
 export interface IProduct {
   _id?: number; // MongoDB ObjectId
   name: string;
@@ -23,8 +15,9 @@ export interface IProduct {
   description: string;
   basePrice: number;
   category: number; // Category id (number)
-  tags: string[]; // e.g., ["summer", "oversized"]
-  variants: IVariant[];
+  tags: string[]; // e.g., ["summer", "minimal"]
+  color: IColor["_id"]; // Single color
+  image: string; // Main image
   isFeatured: boolean;
   isActive: boolean; // For "Soft Deletes"
   createdAt: Date;

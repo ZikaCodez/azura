@@ -11,6 +11,10 @@ This document describes all backend API routes, request/response structures, dat
 - [Products](#products)
 - [Colors](#colors)
 - [Orders](#orders)
+- [Bundles](#bundles)
+- [Collections](#collections)
+- [Components](#components)
+- [Custom Accessories](#custom-accessories)
 - [Image Upload](#image-upload)
 - [Offers & Discounts](#offers--discounts)
 - [Shipping](#shipping)
@@ -39,6 +43,7 @@ GET /api/auth/google
 - **PATCH** `/api/users/:id` — Update user
 - **DELETE** `/api/users/:id` — Delete user
 
+
 ### Example: Create User
 ```http
 POST /api/users
@@ -51,14 +56,115 @@ Content-Type: application/json
   "phone": "0123456789",
   "role": "customer",
   "avatar": "https://...",
-  "addresses": [ ... ],
-  "wishlist": [1,2],
-  "cartItems": [ ... ]
+  "addresses": [],
+  "wishlist": [],
+  "cartItems": [],
+  "customAccessories": []
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "_id": 1,
+  "googleId": "string",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "phone": "0123456789",
+  "role": "customer",
+  "avatar": "https://...",
+  "addresses": [],
+  "wishlist": [],
+  "cartItems": [],
+  "customAccessories": [],
+  "createdAt": "2026-02-21T12:00:00.000Z"
 }
 ```
 
+### Example: Get User by ID
+```http
+GET /api/users/1
+```
 #### Response
-- **201 Created**: Returns the created user object (see [IUser](#iuser)).
+**200 OK**
+```json
+{
+  "_id": 1,
+  "googleId": "string",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "phone": "0123456789",
+  "role": "customer",
+  "avatar": "https://...",
+  "addresses": [],
+  "wishlist": [],
+  "cartItems": [],
+  "customAccessories": [],
+  "createdAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: List Users
+```http
+GET /api/users
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "_id": 1,
+    "googleId": "string",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "phone": "0123456789",
+    "role": "customer",
+    "avatar": "https://...",
+    "addresses": [],
+    "wishlist": [],
+    "cartItems": [],
+    "customAccessories": [],
+    "createdAt": "2026-02-21T12:00:00.000Z"
+  }
+]
+```
+
+### Example: Update User
+```http
+PATCH /api/users/1
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "phone": "0111111111"
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": 1,
+  "googleId": "string",
+  "email": "user@example.com",
+  "name": "Jane Doe",
+  "phone": "0111111111",
+  "role": "customer",
+  "avatar": "https://...",
+  "addresses": [],
+  "wishlist": [],
+  "cartItems": [],
+  "customAccessories": [],
+  "createdAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Delete User
+```http
+DELETE /api/users/1
+```
+#### Response
+**204 No Content**
+
 
 ---
 
@@ -70,13 +176,88 @@ Content-Type: application/json
 - **PATCH** `/api/categories/:id` — Update category
 - **DELETE** `/api/categories/:id` — Delete category
 
+
+### Example: Create Category
+```http
+POST /api/categories
+Content-Type: application/json
+
+{
+  "name": "Rings",
+  "slug": "rings",
+  "description": "All ring products"
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "_id": 1,
+  "name": "Rings",
+  "slug": "rings",
+  "description": "All ring products"
+}
+```
+
+### Example: Get Category by ID
+```http
+GET /api/categories/1
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": 1,
+  "name": "Rings",
+  "slug": "rings",
+  "description": "All ring products"
+}
+```
+
 ### Example: List Categories
 ```http
 GET /api/categories
 ```
-
 #### Response
-- **200 OK**: Array of [ICategory](#icategory) objects
+**200 OK**
+```json
+[
+  {
+    "_id": 1,
+    "name": "Rings",
+    "slug": "rings",
+    "description": "All ring products"
+  }
+]
+```
+
+### Example: Update Category
+```http
+PATCH /api/categories/1
+Content-Type: application/json
+
+{
+  "name": "Bracelets"
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": 1,
+  "name": "Bracelets",
+  "slug": "rings",
+  "description": "All ring products"
+}
+```
+
+### Example: Delete Category
+```http
+DELETE /api/categories/1
+```
+#### Response
+**204 No Content**
+
 
 ---
 
@@ -88,13 +269,131 @@ GET /api/categories
 - **PATCH** `/api/products/:id` — Update product
 - **DELETE** `/api/products/:id` — Delete product
 
-### Example: Get Product
+
+### Example: Create Product
 ```http
-GET /api/products/123
+POST /api/products
+Content-Type: application/json
+
+{
+  "name": "Gold Ring",
+  "slug": "gold-ring",
+  "description": "18k gold ring",
+  "basePrice": 1200,
+  "category": 1,
+  "tags": ["gold", "ring"],
+  "color": "#FFD700",
+  "image": "https://...",
+  "isFeatured": true,
+  "isActive": true
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "_id": 1,
+  "name": "Gold Ring",
+  "slug": "gold-ring",
+  "description": "18k gold ring",
+  "basePrice": 1200,
+  "category": 1,
+  "tags": ["gold", "ring"],
+  "color": "#FFD700",
+  "image": "https://...",
+  "isFeatured": true,
+  "isActive": true,
+  "createdAt": "2026-02-21T12:00:00.000Z",
+  "updatedAt": "2026-02-21T12:00:00.000Z"
+}
 ```
 
+### Example: Get Product by ID
+```http
+GET /api/products/1
+```
 #### Response
-- **200 OK**: [IProduct](#iproduct) object
+**200 OK**
+```json
+{
+  "_id": 1,
+  "name": "Gold Ring",
+  "slug": "gold-ring",
+  "description": "18k gold ring",
+  "basePrice": 1200,
+  "category": 1,
+  "tags": ["gold", "ring"],
+  "color": "#FFD700",
+  "image": "https://...",
+  "isFeatured": true,
+  "isActive": true,
+  "createdAt": "2026-02-21T12:00:00.000Z",
+  "updatedAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: List Products
+```http
+GET /api/products
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "_id": 1,
+    "name": "Gold Ring",
+    "slug": "gold-ring",
+    "description": "18k gold ring",
+    "basePrice": 1200,
+    "category": 1,
+    "tags": ["gold", "ring"],
+    "color": "#FFD700",
+    "image": "https://...",
+    "isFeatured": true,
+    "isActive": true,
+    "createdAt": "2026-02-21T12:00:00.000Z",
+    "updatedAt": "2026-02-21T12:00:00.000Z"
+  }
+]
+```
+
+### Example: Update Product
+```http
+PATCH /api/products/1
+Content-Type: application/json
+
+{
+  "name": "Silver Ring"
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": 1,
+  "name": "Silver Ring",
+  "slug": "gold-ring",
+  "description": "18k gold ring",
+  "basePrice": 1200,
+  "category": 1,
+  "tags": ["gold", "ring"],
+  "color": "#FFD700",
+  "image": "https://...",
+  "isFeatured": true,
+  "isActive": true,
+  "createdAt": "2026-02-21T12:00:00.000Z",
+  "updatedAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Delete Product
+```http
+DELETE /api/products/1
+```
+#### Response
+**204 No Content**
+
 
 ---
 
@@ -105,13 +404,71 @@ GET /api/products/123
 - **GET** `/api/colors` — List colors
 - **PATCH** `/api/colors/:id` — Update color (admin)
 
+
+### Example: Create Color
+```http
+POST /api/colors
+Content-Type: application/json
+
+{
+  "hex": "#FFD700"
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "_id": "1",
+  "hex": "#FFD700"
+}
+```
+
+### Example: Get Color by ID
+```http
+GET /api/colors/1
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": "1",
+  "hex": "#FFD700"
+}
+```
+
 ### Example: List Colors
 ```http
 GET /api/colors
 ```
-
 #### Response
-- **200 OK**: Array of [IColor](#icolor) objects
+**200 OK**
+```json
+[
+  {
+    "_id": "1",
+    "hex": "#FFD700"
+  }
+]
+```
+
+### Example: Update Color
+```http
+PATCH /api/colors/1
+Content-Type: application/json
+
+{
+  "hex": "#C0C0C0"
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": "1",
+  "hex": "#C0C0C0"
+}
+```
+
 
 ---
 
@@ -124,6 +481,7 @@ GET /api/colors
 - **PATCH** `/api/orders/:id` — Admin updates order
 - **DELETE** `/api/orders/:id` — Delete order
 
+
 ### Example: Create Order
 ```http
 POST /api/orders
@@ -131,16 +489,653 @@ Content-Type: application/json
 Authorization: Bearer <token>
 
 {
-  "userId": 123456,
-  "items": [ ... ],
-  "shippingAddress": { ... },
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 1200
+    }
+  ],
+  "shippingAddress": {
+    "street": "123 Main St",
+    "city": "Cairo",
+    "governorate": "Cairo",
+    "postalCode": "12345"
+  },
+  "paymentMethod": "COD"
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "_id": 1,
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 1200
+    }
+  ],
+  "shippingAddress": {
+    "street": "123 Main St",
+    "city": "Cairo",
+    "governorate": "Cairo",
+    "postalCode": "12345"
+  },
   "paymentMethod": "COD",
-  ...
+  "paymentStatus": "pending",
+  "orderStatus": "processing",
+  "subtotal": 2400,
+  "shippingFee": 50,
+  "originalTotal": 2450,
+  "total": 2450,
+  "placedAt": "2026-02-21T12:00:00.000Z"
 }
 ```
 
+### Example: Get Order by ID
+```http
+GET /api/orders/1
+```
 #### Response
-- **201 Created**: [IOrder](#iorder) object
+**200 OK**
+```json
+{
+  "_id": 1,
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 1200
+    }
+  ],
+  "shippingAddress": {
+    "street": "123 Main St",
+    "city": "Cairo",
+    "governorate": "Cairo",
+    "postalCode": "12345"
+  },
+  "paymentMethod": "COD",
+  "paymentStatus": "pending",
+  "orderStatus": "processing",
+  "subtotal": 2400,
+  "shippingFee": 50,
+  "originalTotal": 2450,
+  "total": 2450,
+  "placedAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: List Orders
+```http
+GET /api/orders
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "_id": 1,
+    "userId": 1,
+    "items": [
+      {
+        "productId": 1,
+        "quantity": 2,
+        "price": 1200
+      }
+    ],
+    "shippingAddress": {
+      "street": "123 Main St",
+      "city": "Cairo",
+      "governorate": "Cairo",
+      "postalCode": "12345"
+    },
+    "paymentMethod": "COD",
+    "paymentStatus": "pending",
+    "orderStatus": "processing",
+    "subtotal": 2400,
+    "shippingFee": 50,
+    "originalTotal": 2450,
+    "total": 2450,
+    "placedAt": "2026-02-21T12:00:00.000Z"
+  }
+]
+```
+
+### Example: Update Order (Customer)
+```http
+PATCH /api/orders/1/customer
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "shippingAddress": {
+    "street": "456 New St",
+    "city": "Giza",
+    "governorate": "Giza",
+    "postalCode": "54321"
+  }
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": 1,
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 1200
+    }
+  ],
+  "shippingAddress": {
+    "street": "456 New St",
+    "city": "Giza",
+    "governorate": "Giza",
+    "postalCode": "54321"
+  },
+  "paymentMethod": "COD",
+  "paymentStatus": "pending",
+  "orderStatus": "processing",
+  "subtotal": 2400,
+  "shippingFee": 50,
+  "originalTotal": 2450,
+  "total": 2450,
+  "placedAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Update Order (Admin)
+```http
+PATCH /api/orders/1
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "orderStatus": "shipped"
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": 1,
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 1200
+    }
+  ],
+  "shippingAddress": {
+    "street": "456 New St",
+    "city": "Giza",
+    "governorate": "Giza",
+    "postalCode": "54321"
+  },
+  "paymentMethod": "COD",
+  "paymentStatus": "pending",
+  "orderStatus": "shipped",
+  "subtotal": 2400,
+  "shippingFee": 50,
+  "originalTotal": 2450,
+  "total": 2450,
+  "placedAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Delete Order
+```http
+DELETE /api/orders/1
+Authorization: Bearer <admin-token>
+```
+#### Response
+**204 No Content**
+
+
+---
+
+## Bundles
+
+- **POST** `/api/bundles` — Create bundle (admin/editor)
+- **GET** `/api/bundles/:id` — Get bundle by ID
+- **GET** `/api/bundles` — List bundles
+- **PATCH** `/api/bundles/:id` — Update bundle (admin/editor)
+- **DELETE** `/api/bundles/:id` — Delete bundle (admin/editor)
+
+
+### Example: Create Bundle
+```http
+POST /api/bundles
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "name": "Summer Set",
+  "slug": "summer-set",
+  "description": "Bundle for summer",
+  "productIds": ["1", "2"],
+  "price": 2000,
+  "image": "https://..."
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "id": "abc123",
+  "name": "Summer Set",
+  "slug": "summer-set",
+  "description": "Bundle for summer",
+  "productIds": ["1", "2"],
+  "price": 2000,
+  "image": "https://..."
+}
+```
+
+### Example: Get Bundle by ID
+```http
+GET /api/bundles/abc123
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "abc123",
+  "name": "Summer Set",
+  "slug": "summer-set",
+  "description": "Bundle for summer",
+  "productIds": ["1", "2"],
+  "price": 2000,
+  "image": "https://..."
+}
+```
+
+### Example: List Bundles
+```http
+GET /api/bundles
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "id": "abc123",
+    "name": "Summer Set",
+    "slug": "summer-set",
+    "description": "Bundle for summer",
+    "productIds": ["1", "2"],
+    "price": 2000,
+    "image": "https://..."
+  }
+]
+```
+
+### Example: Update Bundle
+```http
+PATCH /api/bundles/abc123
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "price": 1800
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "abc123",
+  "name": "Summer Set",
+  "slug": "summer-set",
+  "description": "Bundle for summer",
+  "productIds": ["1", "2"],
+  "price": 1800,
+  "image": "https://..."
+}
+```
+
+### Example: Delete Bundle
+```http
+DELETE /api/bundles/abc123
+Authorization: Bearer <admin-token>
+```
+#### Response
+**204 No Content**
+
+
+---
+
+## Collections
+
+- **POST** `/api/collections` — Create collection (admin/editor)
+- **GET** `/api/collections/:id` — Get collection by ID
+- **GET** `/api/collections` — List collections
+- **PATCH** `/api/collections/:id` — Update collection (admin/editor)
+- **DELETE** `/api/collections/:id` — Delete collection (admin/editor)
+
+
+### Example: Create Collection
+```http
+POST /api/collections
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "name": "Summer 2026",
+  "slug": "summer2026",
+  "description": "Summer collection",
+  "productIds": ["1", "2"]
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "id": "summer2026",
+  "name": "Summer 2026",
+  "slug": "summer2026",
+  "description": "Summer collection",
+  "productIds": ["1", "2"]
+}
+```
+
+### Example: Get Collection by ID
+```http
+GET /api/collections/summer2026
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "summer2026",
+  "name": "Summer 2026",
+  "slug": "summer2026",
+  "description": "Summer collection",
+  "productIds": ["1", "2"]
+}
+```
+
+### Example: List Collections
+```http
+GET /api/collections
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "id": "summer2026",
+    "name": "Summer 2026",
+    "slug": "summer2026",
+    "description": "Summer collection",
+    "productIds": ["1", "2"]
+  }
+]
+```
+
+### Example: Update Collection
+```http
+PATCH /api/collections/summer2026
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "description": "Updated summer collection"
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "summer2026",
+  "name": "Summer 2026",
+  "slug": "summer2026",
+  "description": "Updated summer collection",
+  "productIds": ["1", "2"]
+}
+```
+
+### Example: Delete Collection
+```http
+DELETE /api/collections/summer2026
+Authorization: Bearer <admin-token>
+```
+#### Response
+**204 No Content**
+
+
+---
+
+## Components
+
+- **POST** `/api/components` — Create component (admin/editor)
+- **GET** `/api/components/:id` — Get component by ID
+- **GET** `/api/components` — List components
+- **PATCH** `/api/components/:id` — Update component (admin/editor)
+- **DELETE** `/api/components/:id` — Delete component (admin/editor)
+
+
+### Example: Create Component
+```http
+POST /api/components
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "name": "Marble Stone",
+  "type": "stone",
+  "price": 100,
+  "image": "https://..."
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "id": "marble01",
+  "name": "Marble Stone",
+  "type": "stone",
+  "price": 100,
+  "image": "https://..."
+}
+```
+
+### Example: Get Component by ID
+```http
+GET /api/components/marble01
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "marble01",
+  "name": "Marble Stone",
+  "type": "stone",
+  "price": 100,
+  "image": "https://..."
+}
+```
+
+### Example: List Components
+```http
+GET /api/components
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "id": "marble01",
+    "name": "Marble Stone",
+    "type": "stone",
+    "price": 100,
+    "image": "https://..."
+  }
+]
+```
+
+### Example: Update Component
+```http
+PATCH /api/components/marble01
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "price": 120
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "marble01",
+  "name": "Marble Stone",
+  "type": "stone",
+  "price": 120,
+  "image": "https://..."
+}
+```
+
+### Example: Delete Component
+```http
+DELETE /api/components/marble01
+Authorization: Bearer <admin-token>
+```
+#### Response
+**204 No Content**
+
+
+---
+
+## Custom Accessories
+
+- **POST** `/api/custom-accessories` — Create custom accessory (user)
+- **GET** `/api/custom-accessories/:id` — Get custom accessory by ID
+- **GET** `/api/custom-accessories` — List custom accessories
+- **PATCH** `/api/custom-accessories/:id` — Update custom accessory (user/admin)
+- **DELETE** `/api/custom-accessories/:id` — Delete custom accessory (user/admin)
+
+
+### Example: Create Custom Accessory
+```http
+POST /api/custom-accessories
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "name": "Custom Bracelet",
+  "type": "bracelet",
+  "structure": [
+    { "id": "marble01", "name": "Marble Stone", "type": "stone", "price": 100, "image": "https://..." }
+  ],
+  "status": "private",
+  "image": "https://..."
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "id": "xyz789",
+  "userId": "1",
+  "name": "Custom Bracelet",
+  "type": "bracelet",
+  "structure": [
+    { "id": "marble01", "name": "Marble Stone", "type": "stone", "price": 100, "image": "https://..." }
+  ],
+  "status": "private",
+  "image": "https://...",
+  "createdAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Get Custom Accessory by ID
+```http
+GET /api/custom-accessories/xyz789
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "xyz789",
+  "userId": "1",
+  "name": "Custom Bracelet",
+  "type": "bracelet",
+  "structure": [
+    { "id": "marble01", "name": "Marble Stone", "type": "stone", "price": 100, "image": "https://..." }
+  ],
+  "status": "private",
+  "image": "https://...",
+  "createdAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: List Custom Accessories
+```http
+GET /api/custom-accessories
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "id": "xyz789",
+    "userId": "1",
+    "name": "Custom Bracelet",
+    "type": "bracelet",
+    "structure": [
+      { "id": "marble01", "name": "Marble Stone", "type": "stone", "price": 100, "image": "https://..." }
+    ],
+    "status": "private",
+    "image": "https://...",
+    "createdAt": "2026-02-21T12:00:00.000Z"
+  }
+]
+```
+
+### Example: Update Custom Accessory
+```http
+PATCH /api/custom-accessories/xyz789
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "status": "public"
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "id": "xyz789",
+  "userId": "1",
+  "name": "Custom Bracelet",
+  "type": "bracelet",
+  "structure": [
+    { "id": "marble01", "name": "Marble Stone", "type": "stone", "price": 100, "image": "https://..." }
+  ],
+  "status": "public",
+  "image": "https://...",
+  "createdAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Delete Custom Accessory
+```http
+DELETE /api/custom-accessories/xyz789
+Authorization: Bearer <token>
+```
+#### Response
+**204 No Content**
+
 
 ---
 
@@ -148,16 +1143,22 @@ Authorization: Bearer <token>
 
 - **POST** `/api/image` — Upload image (multipart/form-data, field: `image`)
 
-### Example
+
+### Example: Upload Image
 ```http
 POST /api/image
 Content-Type: multipart/form-data
 
 image: <file>
 ```
-
 #### Response
-- **200 OK**: `{ "url": "https://..." }`
+**200 OK**
+```json
+{
+  "url": "https://..."
+}
+```
+
 
 ---
 
@@ -170,13 +1171,125 @@ image: <file>
 - **POST** `/api/discounts` — Apply discount (admin/editor)
 - **GET** `/api/discounts` — List all discounts (admin/editor)
 
+
+### Example: List Promo Codes
+```http
+GET /api/promos
+Authorization: Bearer <admin-token>
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "_id": 1,
+    "code": "SUMMER2024",
+    "type": "percentage",
+    "value": 10,
+    "isActive": true,
+    "usageCount": 0,
+    "createdAt": "2026-02-21T12:00:00.000Z"
+  }
+]
+```
+
+### Example: Create Promo Code
+```http
+POST /api/promos
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "code": "SUMMER2024",
+  "type": "percentage",
+  "value": 10
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "_id": 1,
+  "code": "SUMMER2024",
+  "type": "percentage",
+  "value": 10,
+  "isActive": true,
+  "usageCount": 0,
+  "createdAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Delete Promo Code
+```http
+DELETE /api/promos/1
+Authorization: Bearer <admin-token>
+```
+#### Response
+**204 No Content**
+
 ### Example: Validate Promo
 ```http
 GET /api/promos/validate/SUMMER2024
 ```
-
 #### Response
-- **200 OK**: [IPromoCode](#ipromocode) object or 404 if invalid
+**200 OK**
+```json
+{
+  "_id": 1,
+  "code": "SUMMER2024",
+  "type": "percentage",
+  "value": 10,
+  "isActive": true,
+  "usageCount": 0,
+  "createdAt": "2026-02-21T12:00:00.000Z"
+}
+```
+
+### Example: Apply Discount
+```http
+POST /api/discounts
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "productId": 1,
+  "discount": {
+    "type": "percentage",
+    "value": 10
+  }
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "productId": 1,
+  "discount": {
+    "type": "percentage",
+    "value": 10
+  }
+}
+```
+
+### Example: List Discounts
+```http
+GET /api/discounts
+Authorization: Bearer <admin-token>
+```
+#### Response
+**200 OK**
+```json
+[
+  {
+    "productId": 1,
+    "discount": {
+      "type": "percentage",
+      "value": 10
+    }
+  }
+]
+```
+
 
 ---
 
@@ -187,13 +1300,86 @@ GET /api/promos/validate/SUMMER2024
 - **POST** `/api/shipping` — Create shipping entry (admin/editor)
 - **PATCH** `/api/shipping/:id` — Update shipping entry (admin/editor)
 
+
 ### Example: List Shipping
 ```http
 GET /api/shipping
 ```
-
 #### Response
-- **200 OK**: [ShippingListResult](#shippinglistresult) object
+**200 OK**
+```json
+{
+  "items": [
+    {
+      "_id": "1",
+      "label": "Cairo",
+      "price": 50,
+      "currency": "EGP"
+    }
+  ],
+  "total": 1
+}
+```
+
+### Example: Get Shipping by Governorate ID
+```http
+GET /api/shipping/1
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": "1",
+  "label": "Cairo",
+  "price": 50,
+  "currency": "EGP"
+}
+```
+
+### Example: Create Shipping Entry
+```http
+POST /api/shipping
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "label": "Giza",
+  "price": 60,
+  "currency": "EGP"
+}
+```
+#### Response
+**201 Created**
+```json
+{
+  "_id": "2",
+  "label": "Giza",
+  "price": 60,
+  "currency": "EGP"
+}
+```
+
+### Example: Update Shipping Entry
+```http
+PATCH /api/shipping/2
+Content-Type: application/json
+Authorization: Bearer <admin-token>
+
+{
+  "price": 65
+}
+```
+#### Response
+**200 OK**
+```json
+{
+  "_id": "2",
+  "label": "Giza",
+  "price": 65,
+  "currency": "EGP"
+}
+```
+
 
 ---
 
@@ -212,6 +1398,7 @@ interface IUser {
   addresses: IAddress[];
   wishlist: number[];
   cartItems: ICartItem[];
+  customAccessories?: CustomAccessory[];
   createdAt: Date;
   lastLogin?: Date;
 }
@@ -231,6 +1418,7 @@ interface IOrder {
   shippingFee: number;
   discountTotal?: number;
   promoCode?: string;
+  originalTotal: number;
   total: number;
   trackingNumber?: string;
   placedAt: Date;
@@ -248,12 +1436,63 @@ interface IProduct {
   basePrice: number;
   category: number;
   tags: string[];
-  variants: IVariant[];
+  color: string;
+  image: string;
   isFeatured: boolean;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
   discount?: IDiscount;
+}
+```
+
+### Bundle
+```ts
+interface Bundle {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  productIds: string[];
+  price: number;
+  image: string;
+}
+```
+
+### Collection
+```ts
+interface Collection {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  productIds: string[];
+}
+```
+
+### Component
+```ts
+interface Component {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  image: string;
+}
+```
+
+### CustomAccessory
+```ts
+interface CustomAccessory {
+  id: string;
+  userId: string;
+  name: string;
+  type: string;
+  structure: Component[];
+  status: "private" | "public" | "reviewing";
+  image: string;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 ```
 

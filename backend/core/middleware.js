@@ -1,3 +1,64 @@
+// Component validators
+function validateComponentCreate(req, res, next) {
+  const b = req.body || {};
+  if (!b.name || typeof b.name !== "string") {
+    return res.status(400).json({ error: "Component name is required" });
+  }
+  if (!b.type || typeof b.type !== "string") {
+    return res.status(400).json({ error: "Component type is required" });
+  }
+  if (typeof b.price !== "number") {
+    return res.status(400).json({ error: "Component price must be a number" });
+  }
+  if (!b.image || typeof b.image !== "string") {
+    return res.status(400).json({ error: "Component image is required" });
+  }
+  next();
+}
+
+function validateComponentUpdate(_req, _res, next) {
+  next();
+}
+
+// Custom accessory validators
+function validateCustomAccessoryCreate(req, res, next) {
+  const b = req.body || {};
+  if (!b.userId || typeof b.userId !== "string") {
+    return res
+      .status(400)
+      .json({ error: "Custom accessory userId is required" });
+  }
+  if (!b.name || typeof b.name !== "string") {
+    return res.status(400).json({ error: "Custom accessory name is required" });
+  }
+  if (!b.type || typeof b.type !== "string") {
+    return res.status(400).json({ error: "Custom accessory type is required" });
+  }
+  if (!Array.isArray(b.structure)) {
+    return res
+      .status(400)
+      .json({
+        error: "Custom accessory structure must be an array of components",
+      });
+  }
+  if (!b.status || !["private", "public", "reviewing"].includes(b.status)) {
+    return res
+      .status(400)
+      .json({
+        error: "Custom accessory status must be private, public, or reviewing",
+      });
+  }
+  if (!b.image || typeof b.image !== "string") {
+    return res
+      .status(400)
+      .json({ error: "Custom accessory image is required" });
+  }
+  next();
+}
+
+function validateCustomAccessoryUpdate(_req, _res, next) {
+  next();
+}
 // Shared validation and utility middleware for the e-commerce backend template.
 // Follows project rules: 6-digit integer IDs and 11-digit phone for users.
 
@@ -131,23 +192,11 @@ function validateProductCreate(req, res, next) {
   if (!b.category || typeof b.category !== "string") {
     return res.status(400).json({ error: "Product category is required" });
   }
-  if (b.variants !== undefined) {
-    if (!Array.isArray(b.variants)) {
-      return res
-        .status(400)
-        .json({ error: "Product variants must be an array" });
-    }
-    for (const v of b.variants) {
-      if (!v || typeof v !== "object") {
-        return res
-          .status(400)
-          .json({ error: "Each variant must be an object" });
-      }
-      if (!v.sku || typeof v.sku !== "string") {
-        return res.status(400).json({ error: "Variant sku is required" });
-      }
-      // Stock is no longer tracked on variants; production is made-to-order
-    }
+  if (!b.color || typeof b.color !== "string") {
+    return res.status(400).json({ error: "Product color is required" });
+  }
+  if (!b.image || typeof b.image !== "string") {
+    return res.status(400).json({ error: "Product image is required" });
   }
   next();
 }
@@ -171,23 +220,57 @@ function validateOrderCreate(req, res, next) {
       .json({ error: "Order items must be a non-empty array" });
   }
   for (const it of b.items) {
-    if (!isSixDigitInteger(Number(it.productId))) {
+    if (it.type === "product") {
+      if (!isSixDigitInteger(Number(it.productId))) {
+        return res
+          .status(400)
+          .json({ error: "Order item productId must be a 6-digit integer" });
+      }
+      if (!it.name || typeof it.name !== "string") {
+        return res.status(400).json({ error: "Order item name is required" });
+      }
+      if (typeof it.quantity !== "number" || it.quantity <= 0) {
+        return res
+          .status(400)
+          .json({ error: "Order item quantity must be a positive number" });
+      }
+      if (typeof it.priceAtPurchase !== "number") {
+        return res
+          .status(400)
+          .json({ error: "Order item priceAtPurchase must be a number" });
+      }
+      if (!it.image || typeof it.image !== "string") {
+        return res.status(400).json({ error: "Order item image is required" });
+      }
+      if (!it.color || typeof it.color !== "string") {
+        return res.status(400).json({ error: "Order item color is required" });
+      }
+    } else if (it.type === "bundle") {
+      if (!it.bundleId || typeof it.bundleId !== "string") {
+        return res
+          .status(400)
+          .json({ error: "Order item bundleId is required" });
+      }
+      if (!it.name || typeof it.name !== "string") {
+        return res.status(400).json({ error: "Order item name is required" });
+      }
+      if (typeof it.quantity !== "number" || it.quantity <= 0) {
+        return res
+          .status(400)
+          .json({ error: "Order item quantity must be a positive number" });
+      }
+      if (typeof it.priceAtPurchase !== "number") {
+        return res
+          .status(400)
+          .json({ error: "Order item priceAtPurchase must be a number" });
+      }
+      if (!it.image || typeof it.image !== "string") {
+        return res.status(400).json({ error: "Order item image is required" });
+      }
+    } else {
       return res
         .status(400)
-        .json({ error: "Order item productId must be a 6-digit integer" });
-    }
-    if (!it.sku || typeof it.sku !== "string") {
-      return res.status(400).json({ error: "Order item sku is required" });
-    }
-    if (typeof it.quantity !== "number" || it.quantity <= 0) {
-      return res
-        .status(400)
-        .json({ error: "Order item quantity must be a positive number" });
-    }
-    if (typeof it.priceAtPurchase !== "number") {
-      return res
-        .status(400)
-        .json({ error: "Order item priceAtPurchase must be a number" });
+        .json({ error: "Order item type must be 'product' or 'bundle'" });
     }
   }
   next();
@@ -330,6 +413,56 @@ function validateColorUpdate(req, res, next) {
   next();
 }
 
+// Collection validators
+function validateCollectionCreate(req, res, next) {
+  const b = req.body || {};
+  if (!b.name || typeof b.name !== "string") {
+    return res.status(400).json({ error: "Collection name is required" });
+  }
+  if (!b.slug || typeof b.slug !== "string") {
+    return res.status(400).json({ error: "Collection slug is required" });
+  }
+  if (!Array.isArray(b.productIds)) {
+    return res
+      .status(400)
+      .json({ error: "Collection productIds must be an array" });
+  }
+  next();
+}
+
+function validateCollectionUpdate(_req, _res, next) {
+  next();
+}
+
+// Bundle validators
+function validateBundleCreate(req, res, next) {
+  const b = req.body || {};
+  if (!b.name || typeof b.name !== "string") {
+    return res.status(400).json({ error: "Bundle name is required" });
+  }
+  if (!b.slug || typeof b.slug !== "string") {
+    return res.status(400).json({ error: "Bundle slug is required" });
+  }
+  if (!Array.isArray(b.productIds)) {
+    return res
+      .status(400)
+      .json({ error: "Bundle productIds must be an array" });
+  }
+  if (typeof b.price !== "number") {
+    return res.status(400).json({ error: "Bundle price must be a number" });
+  }
+  if (typeof b.originalPrice !== "number") {
+    return res
+      .status(400)
+      .json({ error: "Bundle originalPrice must be a number" });
+  }
+  next();
+}
+
+function validateBundleUpdate(_req, _res, next) {
+  next();
+}
+
 module.exports = {
   // primitives
   isSixDigitInteger,
@@ -352,6 +485,18 @@ module.exports = {
   validateProductUpdate,
   validateOrderCreate,
   validateOrderUpdate,
+
+  // components & custom accessories
+  validateComponentCreate,
+  validateComponentUpdate,
+  validateCustomAccessoryCreate,
+  validateCustomAccessoryUpdate,
+
+  // collections & bundles
+  validateCollectionCreate,
+  validateCollectionUpdate,
+  validateBundleCreate,
+  validateBundleUpdate,
 
   // terminal handlers
   notFoundHandler,
