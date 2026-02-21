@@ -6,4 +6,5 @@ export interface Bundle {
   productIds: string[];
   price: number;
   image: string;
+  expire?: Date;
 }

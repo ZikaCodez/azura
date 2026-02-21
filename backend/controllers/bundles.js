@@ -14,7 +14,8 @@ exports.getBundles = async (req, res) => {
           (sum, p) => sum + (p.basePrice || 0),
           0,
         );
-        return { ...bundle, originalPrice };
+        // Attach expire if present
+        return { ...bundle, originalPrice, expire: bundle.expire || undefined };
       }),
     );
     res.json(bundlesWithOriginal);
@@ -35,7 +36,7 @@ exports.getBundleById = async (req, res) => {
       (sum, p) => sum + (p.basePrice || 0),
       0,
     );
-    res.json({ ...bundle, originalPrice });
+    res.json({ ...bundle, originalPrice, expire: bundle.expire || undefined });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch bundle" });
   }
@@ -43,7 +44,8 @@ exports.getBundleById = async (req, res) => {
 
 exports.createBundle = async (req, res) => {
   try {
-    const { name, slug, description, productIds, price, image } = req.body;
+    const { name, slug, description, productIds, price, image, expire } =
+      req.body;
     const [id] = await db("bundles")
       .insert({
         name,
@@ -52,6 +54,7 @@ exports.createBundle = async (req, res) => {
         productIds: JSON.stringify(productIds),
         price,
         image,
+        expire: expire || null,
       })
       .returning("id");
     res.status(201).json({ id });
@@ -62,7 +65,8 @@ exports.createBundle = async (req, res) => {
 
 exports.updateBundle = async (req, res) => {
   try {
-    const { name, slug, description, productIds, price, image } = req.body;
+    const { name, slug, description, productIds, price, image, expire } =
+      req.body;
     await db("bundles")
       .where({ id: req.params.id })
       .update({
@@ -72,6 +76,7 @@ exports.updateBundle = async (req, res) => {
         productIds: JSON.stringify(productIds),
         price,
         image,
+        expire: expire || null,
       });
     res.json({ success: true });
   } catch (err) {

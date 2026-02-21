@@ -723,7 +723,8 @@ Authorization: Bearer <admin-token>
   "description": "Bundle for summer",
   "productIds": ["1", "2"],
   "price": 2000,
-  "image": "https://..."
+  "image": "https://...",
+  "expire": "2026-03-01T00:00:00.000Z" // optional
 }
 ```
 #### Response
@@ -736,7 +737,8 @@ Authorization: Bearer <admin-token>
   "description": "Bundle for summer",
   "productIds": ["1", "2"],
   "price": 2000,
-  "image": "https://..."
+  "image": "https://...",
+  "expire": "2026-03-01T00:00:00.000Z" // optional
 }
 ```
 
@@ -754,7 +756,8 @@ GET /api/bundles/abc123
   "description": "Bundle for summer",
   "productIds": ["1", "2"],
   "price": 2000,
-  "image": "https://..."
+  "image": "https://...",
+  "expire": "2026-03-01T00:00:00.000Z" // optional
 }
 ```
 
@@ -773,7 +776,8 @@ GET /api/bundles
     "description": "Bundle for summer",
     "productIds": ["1", "2"],
     "price": 2000,
-    "image": "https://..."
+    "image": "https://...",
+    "expire": "2026-03-01T00:00:00.000Z" // optional
   }
 ]
 ```
@@ -785,7 +789,8 @@ Content-Type: application/json
 Authorization: Bearer <admin-token>
 
 {
-  "price": 1800
+  "price": 1800,
+  "expire": "2026-03-01T00:00:00.000Z" // optional
 }
 ```
 #### Response
@@ -798,7 +803,8 @@ Authorization: Bearer <admin-token>
   "description": "Bundle for summer",
   "productIds": ["1", "2"],
   "price": 1800,
-  "image": "https://..."
+  "image": "https://...",
+  "expire": "2026-03-01T00:00:00.000Z" // optional
 }
 ```
 
@@ -1456,6 +1462,7 @@ interface Bundle {
   productIds: string[];
   price: number;
   image: string;
+  expire?: Date;
 }
 ```
 
