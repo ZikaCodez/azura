@@ -140,13 +140,16 @@ export default function CartDialog({
               removed.push({ productId: it.productId, sku: it.sku });
               continue;
             }
-            // If product exists, ensure variant (sku) exists (robust string compare)
-            const hasVariant =
-              Array.isArray(p.variants) &&
-              p.variants.some((v: any) => String(v.sku) === String(it.sku));
-            if (!hasVariant) {
-              removeFromCart(it.productId, it.sku);
-              removed.push({ productId: it.productId, sku: it.sku });
+            // If product exposes variants, ensure the sku exists. If the product
+            // has no variants (product-level), keep the item.
+            if (Array.isArray(p.variants) && p.variants.length > 0) {
+              const hasVariant = p.variants.some(
+                (v: any) => String(v.sku) === String(it.sku),
+              );
+              if (!hasVariant) {
+                removeFromCart(it.productId, it.sku);
+                removed.push({ productId: it.productId, sku: it.sku });
+              }
             }
           }
           if (removed.length > 0) {

@@ -304,11 +304,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const filtered = serverItems.filter((it: any) => {
         const p = productMap[String(it.productId)];
         if (!p) return false;
-        if (!Array.isArray(p.variants) || p.variants.length === 0) return false;
-        const hasVariant = p.variants.some(
-          (v: any) => String(v.sku) === String(it.sku),
-        );
-        return Boolean(hasVariant);
+        if (Array.isArray(p.variants) && p.variants.length > 0) {
+          const hasVariant = p.variants.some(
+            (v: any) => String(v.sku) === String(it.sku),
+          );
+          return Boolean(hasVariant);
+        }
+        return true;
       });
 
       // If we removed items, persist cleaned cart silently
@@ -360,11 +362,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const filtered = local.filter((it: any) => {
         const p = productMap[String(it.productId)];
         if (!p) return false;
-        if (!Array.isArray(p.variants) || p.variants.length === 0) return false;
-        const hasVariant = p.variants.some(
-          (v: any) => String(v.sku) === String(it.sku),
-        );
-        return Boolean(hasVariant);
+        // If variants exist, require matching sku. Otherwise accept the item.
+        if (Array.isArray(p.variants) && p.variants.length > 0) {
+          const hasVariant = p.variants.some(
+            (v: any) => String(v.sku) === String(it.sku),
+          );
+          return Boolean(hasVariant);
+        }
+        return true;
       });
 
       if (filtered.length !== local.length) {
