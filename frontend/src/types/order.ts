@@ -11,6 +11,7 @@ export type OrderItem = {
   originalPrice?: number;
   discountSnapshot?: Discount;
   discountApplied?: boolean;
+  size?: "S" | "M" | "L";
 };
 
 export type PaymentStatus = "pending" | "paid" | "failed";

@@ -8,10 +8,14 @@ export type ProductListItem = {
   slug: string;
   basePrice: number;
   category?: number; // category id
+  collection?: string | number;
+  color?: string;
   isFeatured?: boolean;
   isActive?: boolean;
   status?: ProductStatus;
   updatedAt?: string | Date;
   thumbnail?: string | null;
+  image?: string | null;
   discount?: Discount;
+  sizes?: ("S" | "M" | "L")[];
 };
