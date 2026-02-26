@@ -11,7 +11,7 @@ import type { CartContextValue, CartItem, CartState } from "@/types/cart";
 import { useAuth } from "@/providers/AuthProvider";
 import api from "@/lib/api";
 
-const CART_STORAGE_KEY = "Azura_cart";
+const CART_STORAGE_KEY = "azura_cart";
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
