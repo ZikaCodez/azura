@@ -5,6 +5,7 @@ import ProductCard from "@/components/product/ProductCard";
 import ProductFilters from "@/components/product/ProductFilters";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { type ProductListItem as Product } from "@/types/product";
 // Pagination UI removed with infinite scroll
 import {
   Drawer,
@@ -23,25 +24,6 @@ import {
 } from "@/components/ui/select";
 import { SlidersHorizontal } from "lucide-react";
 import api from "@/lib/api";
-
-type Variant = {
-  sku: string;
-  priceModifier?: number;
-  images?: string[];
-  color?: string;
-  size?: string;
-};
-
-type Product = {
-  _id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  basePrice: number;
-  category: number; // category id
-  variants?: Variant[];
-  discount?: any;
-};
 
 type ListResponse<T> = {
   items: T[];
@@ -255,22 +237,19 @@ export default function Shop() {
         (priceMax == null || price <= priceMax)
       );
     });
-    // Size/color filters on variants (AND when both selected)
+    // Size/color filters using product-level `sizes` and `color`
     if (selectedSizes.length > 0) {
       list = list.filter((p) =>
-        (p.variants || []).some((v) => {
-          const vs = (v.size || "").toLowerCase();
-          return !!vs && selectedSizes.includes(vs);
-        }),
+        (p.sizes || []).some(
+          (s) => !!s && selectedSizes.includes(String(s).toLowerCase()),
+        ),
       );
     }
     if (selectedColors.length > 0) {
-      list = list.filter((p) =>
-        (p.variants || []).some((v) => {
-          const vc = (v.color || "").toLowerCase();
-          return !!vc && selectedColors.includes(vc);
-        }),
-      );
+      list = list.filter((p) => {
+        const pc = (p.color || "").toLowerCase();
+        return !!pc && selectedColors.includes(pc);
+      });
     }
     // Sorting
     list.sort((a, b) => {
@@ -352,8 +331,8 @@ export default function Shop() {
   const sizeOptions = useMemo(() => {
     const set = new Set<string>();
     for (const p of allProducts) {
-      for (const v of p.variants || []) {
-        if (v.size && typeof v.size === "string") set.add(v.size);
+      for (const s of p.sizes || []) {
+        if (s && typeof s === "string") set.add(s);
       }
     }
     if (set.size === 0) return ["S", "M", "L", "XL", "OS"];
@@ -363,9 +342,7 @@ export default function Shop() {
   const colorOptions = useMemo(() => {
     const set = new Set<string>();
     for (const p of allProducts) {
-      for (const v of p.variants || []) {
-        if (v.color && typeof v.color === "string") set.add(v.color);
-      }
+      if (p.color && typeof p.color === "string") set.add(p.color);
     }
     if (set.size === 0)
       return ["Black", "White", "Beige", "Red", "Grey", "Blue"];
@@ -594,7 +571,6 @@ export default function Shop() {
                         "https://via.placeholder.com/600x800?text=Rova"
                       }
                       categoryId={p.category}
-                      variants={p.variants}
                       basePrice={p.basePrice}
                       discount={p.discount}
                     />

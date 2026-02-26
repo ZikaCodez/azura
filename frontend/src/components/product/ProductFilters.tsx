@@ -1,35 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useColors } from "@/hooks/useColors";
 
 export interface ProductFiltersProps {
   categories?: string[];
+  collections?: string[];
   sizes?: string[];
   colors?: string[];
   priceMin?: number;
   priceMax?: number;
   selectedc?: string | null;
+  selectedCollection?: string | null;
   selectedSizes?: string[];
   selectedColors?: string[];
   onChange?: (filters: {
     c: string | null;
+    collection: string | null;
     sizes: string[];
     colors: string[];
     priceMin: number;
     priceMax: number;
+    offer?: "discounts" | "bundles" | null;
   }) => void;
   onClear?: () => void;
 }
 
 export default function ProductFilters({
   categories = ["Men", "Women", "Accessories"],
+  collections = [],
   sizes = ["S", "M", "L", "XL"],
   colors = ["Black", "White", "Beige"],
   priceMin = 0,
   priceMax = 2000,
   selectedc: selectedcProp = null,
+  selectedCollection: selectedCollectionProp = null,
   selectedSizes: selectedSizesProp = [],
   selectedColors: selectedColorsProp = [],
   onChange,
@@ -45,6 +51,10 @@ export default function ProductFilters({
   const [selectedColors, setSelectedColors] = useState<string[]>(
     selectedColorsProp ?? [],
   );
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(
+    selectedCollectionProp ?? null,
+  );
+  const [offer, setOffer] = useState<"discounts" | "bundles" | null>(null);
   const [min, setMin] = useState<number>(priceMin);
   const [max, setMax] = useState<number>(priceMax);
 
@@ -62,6 +72,10 @@ export default function ProductFilters({
     setSuppressEmitTrue();
     setSelectedc(selectedcProp ?? null);
   }, [selectedcProp]);
+  useEffect(() => {
+    setSuppressEmitTrue();
+    setSelectedCollection(selectedCollectionProp ?? null);
+  }, [selectedCollectionProp]);
   useEffect(() => {
     setSuppressEmitTrue();
     setSelectedSizes(selectedSizesProp ?? []);
@@ -85,13 +99,23 @@ export default function ProductFilters({
     }
     onChange?.({
       c: selectedc,
+      collection: selectedCollection,
       sizes: selectedSizes,
       colors: selectedColors,
       priceMin: min,
       priceMax: max,
+      offer,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedc, selectedSizes, selectedColors, min, max]);
+  }, [
+    selectedc,
+    selectedCollection,
+    selectedSizes,
+    selectedColors,
+    min,
+    max,
+    offer,
+  ]);
 
   const toggleSize = (s: string) => {
     const key = s.toLowerCase();
@@ -115,10 +139,18 @@ export default function ProductFilters({
     setSelectedc(null);
     setSelectedSizes([]);
     setSelectedColors([]);
+    setSelectedCollection(null);
+    setOffer(null);
     setMin(priceMin);
     setMax(priceMax);
     onClear?.();
   };
+
+  const toggleOffer = (o: "discounts" | "bundles") => {
+    setOffer((prev) => (prev === o ? null : o));
+  };
+
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   // Dynamic swatch styles from colorsMap
   function swatchStyles(name?: string): {
@@ -157,22 +189,74 @@ export default function ProductFilters({
       {/* c (button radios) */}
       <div>
         <h5 className="text-xs font-medium text-muted-foreground">Category</h5>
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {(showAllCategories ? categories : categories.slice(0, 6)).map(
+            (c) => {
+              const selected =
+                (selectedc || "").toLowerCase() === c.toLowerCase();
+              return (
+                <Button
+                  key={c}
+                  variant={selected ? "default" : "outline"}
+                  size="sm"
+                  className={cn("rounded-full", selected && "font-semibold")}
+                  onClick={() => {
+                    setSelectedc((prev) =>
+                      (prev || "").toLowerCase() === c.toLowerCase() ? null : c,
+                    );
+                  }}>
+                  {c ? c.charAt(0).toUpperCase() + c.slice(1) : ""}
+                </Button>
+              );
+            },
+          )}
+          {categories.length > 6 && (
+            <Button
+              variant="default"
+              size="sm"
+              className="col-span-full rounded-full"
+              onClick={() => setShowAllCategories((s) => !s)}>
+              {showAllCategories ? (
+                <span className="flex items-center gap-1">
+                  <span>Show less</span>
+                  <ChevronUp className="size-4" />
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <span>Show more</span>
+                  <span className="size-4 rotate-180">
+                    <ChevronUp />
+                  </span>
+                </span>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Collection (optional) */}
+      <div>
+        <h5 className="text-xs font-medium text-muted-foreground">
+          Collection
+        </h5>
         <div className="mt-2 flex flex-wrap gap-2">
-          {categories.map((c) => {
+          {collections.map((col) => {
             const selected =
-              (selectedc || "").toLowerCase() === c.toLowerCase();
+              (selectedCollection || "").toLowerCase() === col.toLowerCase();
             return (
               <Button
-                key={c}
+                key={col}
                 variant={selected ? "default" : "outline"}
                 size="sm"
                 className={cn("rounded-full", selected && "font-semibold")}
-                onClick={() => {
-                  setSelectedc((prev) =>
-                    (prev || "").toLowerCase() === c.toLowerCase() ? null : c,
-                  );
-                }}>
-                {c ? c.charAt(0).toUpperCase() + c.slice(1) : ""}
+                onClick={() =>
+                  setSelectedCollection((prev) =>
+                    (prev || "").toLowerCase() === col.toLowerCase()
+                      ? null
+                      : col,
+                  )
+                }>
+                {col}
               </Button>
             );
           })}
@@ -231,6 +315,27 @@ export default function ProductFilters({
               </Button>
             );
           })}
+        </div>
+      </div>
+
+      {/* Offers section */}
+      <div>
+        <h5 className="text-xs font-medium text-muted-foreground">Offers</h5>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Button
+            variant={offer === "discounts" ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleOffer("discounts")}
+            className={cn(offer === "discounts" && "font-semibold")}>
+            Discounts
+          </Button>
+          <Button
+            variant={offer === "bundles" ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleOffer("bundles")}
+            className={cn(offer === "bundles" && "font-semibold")}>
+            Bundles
+          </Button>
         </div>
       </div>
 

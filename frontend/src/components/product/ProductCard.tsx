@@ -132,7 +132,8 @@ export default function ProductCard({
 
   useEffect(() => {
     if (resolvedSizes.length > 0) {
-      setSelectedSize((prev) => prev ?? resolvedSizes[0]);
+      // Always default to the first size when sizes are present
+      setSelectedSize(resolvedSizes[0]);
     }
   }, [resolvedSizes]);
 
@@ -332,7 +333,39 @@ export default function ProductCard({
       </div>
 
       <div className="p-2">
-        <div className="text-xs text-muted-foreground">{categoryName}</div>
+        {/* Header metadata: color, bundle, collection, category */}
+        <div className="flex items-center gap-3">
+          {resolvedColor && (
+            <div className="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="size-4 rounded-full border"
+                style={colorStyles}
+              />
+              <span className="text-xs text-muted-foreground">
+                {resolvedColor}
+              </span>
+            </div>
+          )}
+
+          {featuredBundle && (
+            <div className="text-xs text-muted-foreground">
+              <Link to={`/bundles/${featuredBundle.id}`} className="underline">
+                {featuredBundle.name}
+              </Link>
+            </div>
+          )}
+
+          {collectionName && (
+            <div className="text-xs text-muted-foreground">
+              {collectionName}
+            </div>
+          )}
+
+          {categoryName && (
+            <div className="text-xs text-muted-foreground">{categoryName}</div>
+          )}
+        </div>
 
         <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
           <div className="flex-1">
