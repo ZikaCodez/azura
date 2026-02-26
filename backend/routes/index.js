@@ -10,7 +10,7 @@ const shipping = require("./shipping");
 const bundles = require("./bundles");
 const collections = require("./collections");
 const components = require("./components");
-const customAccessories = require("./customAccessories");
+const customAccessories = require("./custom");
 
 const router = express.Router();
 
