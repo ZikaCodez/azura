@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import SectionHeader from "@/components/common/SectionHeader";
 import ProductCard from "@/components/product/ProductCard";
+import BundleCard from "@/components/product/BundleCard";
 import ProductFilters from "@/components/product/ProductFilters";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,6 +35,7 @@ export default function Shop() {
   const location = useLocation();
   const navigate = useNavigate();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allBundles, setAllBundles] = useState<any[]>([]);
   const [categories, setCategories] = useState<
     Array<{ _id: number; name: string; slug: string }>
   >([]);
@@ -206,6 +208,18 @@ export default function Shop() {
           },
         });
         setAllProducts(res.data.items || []);
+        try {
+          const br = await api.get<ListResponse<any>>("/bundles", {
+            params: {
+              limit: 1000,
+              sort: JSON.stringify({ createdAt: -1 }),
+              _ts: Date.now(),
+            },
+          });
+          setAllBundles(br.data.items || []);
+        } catch {
+          setAllBundles([]);
+        }
       } catch (e: any) {
         setError(e?.message || "Failed to load products");
       } finally {
@@ -284,9 +298,30 @@ export default function Shop() {
     sortKey,
   ]);
 
+  // Merge filtered products and bundles into a single timeline sorted by createdAt
+  const mergedItems = useMemo(() => {
+    const prodItems = filteredProducts.map((p) => ({
+      kind: "product" as const,
+      createdAt: p.createdAt || (p as any).createdAt || 0,
+      item: p,
+    }));
+    const bundleItems = (allBundles || []).map((b) => ({
+      kind: "bundle" as const,
+      createdAt: b.createdAt || b.createdAt || 0,
+      item: b,
+    }));
+    const combined = [...prodItems, ...bundleItems];
+    combined.sort((a, b) => {
+      const ad = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bd = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bd - ad;
+    });
+    return combined;
+  }, [filteredProducts, allBundles]);
+
   useEffect(() => {
-    setTotal(filteredProducts.length);
-  }, [filteredProducts.length]);
+    setTotal(mergedItems.length);
+  }, [mergedItems.length]);
 
   const categoryOptions = useMemo(
     () => categories.map((c) => c.slug),
@@ -294,7 +329,7 @@ export default function Shop() {
   );
   // Reset visible items when filters/sort change
   useEffect(() => {
-    setVisibleCount(Math.min(6, filteredProducts.length));
+    setVisibleCount(Math.min(6, mergedItems.length));
   }, [
     category,
     priceMin,
@@ -303,6 +338,7 @@ export default function Shop() {
     selectedColors,
     sortKey,
     allProducts,
+    allBundles,
   ]);
 
   // Intersection Observer for infinite scroll
@@ -313,9 +349,7 @@ export default function Shop() {
       (entries) => {
         const entry = entries[0];
         if (entry.isIntersecting) {
-          setVisibleCount((prev) =>
-            Math.min(prev + 6, filteredProducts.length),
-          );
+          setVisibleCount((prev) => Math.min(prev + 6, mergedItems.length));
           observer.unobserve(el);
           setTimeout(() => {
             // Re-attach after DOM updates so user needs to scroll further
@@ -552,35 +586,46 @@ export default function Shop() {
                 No products found, try changing your filters
               </div>
             )}
-            {!loading && !error && filteredProducts.length > 0 && (
+            {!loading && !error && mergedItems.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {filteredProducts.slice(0, visibleCount).map((p) => {
-                  const firstImage = p.images?.[0] ?? p.image ?? p.thumbnail;
-                  const firstSku = undefined;
-                  const price = Math.max(0, p.basePrice || 0);
+                {mergedItems.slice(0, visibleCount).map((mi, idx) => {
+                  if (mi.kind === "product") {
+                    const p = mi.item as Product;
+                    const firstImage = p.images?.[0] ?? p.image ?? p.thumbnail;
+                    const firstSku = undefined;
+                    const price = Math.max(0, p.basePrice || 0);
+                    return (
+                      <ProductCard
+                        key={`plp-${p._id}`}
+                        product={p}
+                        productId={p._id}
+                        slug={p.slug}
+                        sku={firstSku}
+                        title={p.name}
+                        price={price}
+                        image={
+                          firstImage ||
+                          "https://via.placeholder.com/600x800?text=Azura"
+                        }
+                        categoryId={p.category}
+                        basePrice={p.basePrice}
+                        discount={p.discount}
+                      />
+                    );
+                  }
+                  // bundle
+                  const b = mi.item as any;
                   return (
-                    <ProductCard
-                      key={`plp-${p._id}`}
-                      product={p}
-                      productId={p._id}
-                      slug={p.slug}
-                      sku={firstSku}
-                      title={p.name}
-                      price={price}
-                      image={
-                        firstImage ||
-                        "https://via.placeholder.com/600x800?text=Azura"
-                      }
-                      categoryId={p.category}
-                      basePrice={p.basePrice}
-                      discount={p.discount}
+                    <BundleCard
+                      key={`bundle-${String(b._id || b.id || idx)}`}
+                      bundle={b}
                     />
                   );
                 })}
               </div>
             )}
             {/* Infinite scroll sentinel */}
-            {!loading && !error && visibleCount < filteredProducts.length && (
+            {!loading && !error && visibleCount < mergedItems.length && (
               <div ref={sentinelRef} className="h-8" />
             )}
           </div>
