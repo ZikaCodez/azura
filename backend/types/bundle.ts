@@ -7,4 +7,6 @@ export interface Bundle {
   price: number;
   image: string;
   expire?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
