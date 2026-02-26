@@ -13,6 +13,8 @@ export type ProductListItem = {
   isFeatured?: boolean;
   isActive?: boolean;
   status?: ProductStatus;
+  description?: string | null;
+  createdAt?: string | Date;
   updatedAt?: string | Date;
   thumbnail?: string | null;
   images?: string[];
