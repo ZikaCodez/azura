@@ -7,4 +7,6 @@ export type Bundle = {
   price: number;
   image: string;
   expire?: string | Date;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 };
