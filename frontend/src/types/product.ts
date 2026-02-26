@@ -15,6 +15,7 @@ export type ProductListItem = {
   status?: ProductStatus;
   updatedAt?: string | Date;
   thumbnail?: string | null;
+  images?: string[];
   image?: string | null;
   discount?: Discount;
   sizes?: ("S" | "M" | "L")[];

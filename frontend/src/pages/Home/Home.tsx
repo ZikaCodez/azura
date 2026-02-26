@@ -201,10 +201,9 @@ export default function Home() {
 
   const cards = useMemo(() => {
     return products.map((p) => {
-      const firstImage = p.variants?.[0]?.images?.[0];
-      const firstSku = p.variants?.[0]?.sku;
-      const priceMod = p.variants?.[0]?.priceModifier || 0;
-      const price = Math.max(0, p.basePrice + priceMod);
+      const firstImage = p.images?.[0] ?? p.image ?? p.thumbnail;
+      const firstSku = undefined;
+      const price = Math.max(0, p.basePrice || 0);
       return {
         key: p._id,
         productId: p._id,
@@ -469,10 +468,10 @@ export default function Home() {
                   <CarouselContent
                     className={featured.length < 3 ? "justify-center" : ""}>
                     {featured.map((p) => {
-                      const firstImage = p.variants?.[0]?.images?.[0];
-                      const firstSku = p.variants?.[0]?.sku;
-                      const priceMod = p.variants?.[0]?.priceModifier || 0;
-                      const price = Math.max(0, p.basePrice + priceMod);
+                      const firstImage =
+                        p.images?.[0] ?? p.image ?? p.thumbnail;
+                      const firstSku = undefined;
+                      const price = Math.max(0, p.basePrice || 0);
                       return (
                         <CarouselItem
                           key={`feat-${p._id}`}
@@ -512,10 +511,9 @@ export default function Home() {
                         : "grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto"
                   }>
                   {featured.map((p) => {
-                    const firstImage = p.variants?.[0]?.images?.[0];
-                    const firstSku = p.variants?.[0]?.sku;
-                    const priceMod = p.variants?.[0]?.priceModifier || 0;
-                    const price = Math.max(0, p.basePrice + priceMod);
+                    const firstImage = p.images?.[0] ?? p.image ?? p.thumbnail;
+                    const firstSku = undefined;
+                    const price = Math.max(0, p.basePrice || 0);
                     return (
                       <ProductCard
                         key={`feat-${p._id}`}
@@ -549,9 +547,8 @@ export default function Home() {
               "@context": "https://schema.org",
               "@type": "ItemList",
               itemListElement: featured.map((p, index) => {
-                const firstImage = p.variants?.[0]?.images?.[0];
-                const priceMod = p.variants?.[0]?.priceModifier || 0;
-                const price = Math.max(0, p.basePrice + priceMod);
+                const firstImage = p.images?.[0] ?? p.image ?? p.thumbnail;
+                const price = Math.max(0, p.basePrice || 0);
                 return {
                   "@type": "Product",
                   position: index + 1,

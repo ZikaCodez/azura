@@ -578,10 +578,9 @@ export default function Shop() {
             {!loading && !error && filteredProducts.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {filteredProducts.slice(0, visibleCount).map((p) => {
-                  const firstImage = p.variants?.[0]?.images?.[0];
-                  const firstSku = p.variants?.[0]?.sku;
-                  const priceMod = p.variants?.[0]?.priceModifier || 0;
-                  const price = Math.max(0, p.basePrice + priceMod);
+                  const firstImage = p.images?.[0] ?? p.image ?? p.thumbnail;
+                  const firstSku = undefined;
+                  const price = Math.max(0, p.basePrice || 0);
                   return (
                     <ProductCard
                       key={`plp-${p._id}`}

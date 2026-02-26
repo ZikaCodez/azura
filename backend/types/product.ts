@@ -19,7 +19,8 @@ export interface IProduct {
   category: number; // Category id (number)
   tags: string[]; // e.g., ["summer", "minimal"]
   color: IColor["_id"]; // Single color
-  image: string; // Main image
+  images?: string[]; // Multiple images (first image is primary)
+  image?: string; // Main image (first image fallback / compatibility)
   sizes?: ProductSize[]; // Optional
   isFeatured: boolean;
   isActive: boolean; // For "Soft Deletes"

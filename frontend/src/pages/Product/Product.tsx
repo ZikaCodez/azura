@@ -61,6 +61,11 @@ export default function Product() {
   const [recs, setRecs] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<Category | null>(null);
+  const [collectionName, setCollectionName] = useState<string | null>(null);
+  const [featuredBundle, setFeaturedBundle] = useState<{
+    id: string | number;
+    name: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
   const [selectedColorKey, setSelectedColorKey] = useState<string | null>(null);
@@ -139,6 +144,67 @@ export default function Product() {
   // Refresh recommendations when color filter changes
   useEffect(() => {
     async function loadColorFiltered() {
+      // Fetch collection name when product.collection is present
+      useEffect(() => {
+        let isMounted = true;
+        async function loadCollection() {
+          if (!product || !product.collection) {
+            if (isMounted) setCollectionName(null);
+            return;
+          }
+          try {
+            const res = await api.get(`/collections/${product.collection}`, {
+              headers: { "x-silent": "1" },
+            });
+            if (isMounted) setCollectionName(res.data?.name || null);
+          } catch {
+            if (isMounted) setCollectionName(null);
+          }
+        }
+        loadCollection();
+        return () => {
+          isMounted = false;
+        };
+      }, [product?.collection, product]);
+
+      // Detect featured bundle for this product
+      useEffect(() => {
+        let isMounted = true;
+        async function loadBundle() {
+          if (!product || !product._id) {
+            if (isMounted) setFeaturedBundle(null);
+            return;
+          }
+          try {
+            const resp = await api.get("/bundles", {
+              headers: { "x-silent": "1" },
+            });
+            const bundles = Array.isArray(resp.data) ? resp.data : [];
+            const match = bundles.find((b: any) => {
+              try {
+                const ids = Array.isArray(b.productIds)
+                  ? b.productIds
+                  : JSON.parse(b.productIds || "[]");
+                return ids.some(
+                  (id: any) => String(id) === String(product._id),
+                );
+              } catch {
+                return false;
+              }
+            });
+            if (isMounted)
+              setFeaturedBundle(
+                match ? { id: match._id ?? match.id, name: match.name } : null,
+              );
+          } catch {
+            if (isMounted) setFeaturedBundle(null);
+          }
+        }
+        loadBundle();
+        return () => {
+          isMounted = false;
+        };
+      }, [product?._id]);
       if (!product) return;
       try {
         const filter: any = {
@@ -267,7 +333,7 @@ export default function Product() {
     const description =
       product.description ||
       "Premium local clothing from Rova. Discover fit, fabric, and finish you'll love.";
-    const fallbackImage = product.variants?.[0]?.images?.[0] || "/logo.png";
+    const fallbackImage = product.images?.[0] ?? product.image ?? "/logo.png";
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const image = (currentImage || fallbackImage).startsWith("http")
       ? currentImage || fallbackImage
@@ -372,29 +438,37 @@ export default function Product() {
     return <div className="text-red-500">{error || "Product not found"}</div>;
   }
 
-  const colors = Array.from(
-    (product.variants || []).reduce((m, v, idx) => {
-      const c = getVariantColorKey(v);
-      if (c && !m.has(c)) m.set(c, idx);
-      return m;
-    }, new Map<string, number>()),
-  );
-  const sizesForColor = selectedColorKey
-    ? Array.from(
-        new Set(
-          (product.variants || [])
-            .filter((v) => getVariantColorKey(v) === selectedColorKey)
-            .map((v) => getVariantSize(v))
-            .filter((s): s is string => !!s),
-        ),
-      )
+  // Colors: prefer product-level color if provided, otherwise derive from variants
+  const colors = product?.color
+    ? [[product.color, 0]]
     : Array.from(
-        new Set(
-          (product.variants || [])
-            .map((v) => getVariantSize(v))
-            .filter((s): s is string => !!s),
-        ),
+        (product.variants || []).reduce((m, v, idx) => {
+          const c = getVariantColorKey(v);
+          if (c && !m.has(c)) m.set(c, idx);
+          return m;
+        }, new Map<string, number>()),
       );
+
+  // Sizes: prefer product-level sizes if provided, otherwise derive from variants filtered by selected color
+  const sizesForColor =
+    product?.sizes && product.sizes.length > 0
+      ? product.sizes
+      : selectedColorKey
+        ? Array.from(
+            new Set(
+              (product.variants || [])
+                .filter((v) => getVariantColorKey(v) === selectedColorKey)
+                .map((v) => getVariantSize(v))
+                .filter((s): s is string => !!s),
+            ),
+          )
+        : Array.from(
+            new Set(
+              (product.variants || [])
+                .map((v) => getVariantSize(v))
+                .filter((s): s is string => !!s),
+            ),
+          );
 
   function parseColor(vSku?: string) {
     if (!vSku) return undefined;
@@ -487,8 +561,8 @@ export default function Product() {
               <div className="h-full w-full p-2">
                 <img
                   src={
-                    currentImage ||
-                    product.variants?.[0]?.images?.[0] ||
+                    (currentImage || product.images?.[0]) ??
+                    product.image ??
                     "https://via.placeholder.com/600x800?text=Rova"
                   }
                   alt={product.name}
@@ -500,6 +574,30 @@ export default function Product() {
         </div>
         <div>
           <h1 className="text-xl font-semibold">{product.name}</h1>
+          {product.color && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Color:</span>
+              <span
+                aria-hidden="true"
+                className="size-4 rounded-full border"
+                style={swatchStyles(product.color)}
+              />
+              <span className="text-xs">{product.color}</span>
+            </div>
+          )}
+          {collectionName && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              Collection: {collectionName}
+            </div>
+          )}
+          {featuredBundle && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              This product is featured in{" "}
+              <Link to={`/bundles/${featuredBundle.id}`} className="underline">
+                {featuredBundle.name}
+              </Link>
+            </div>
+          )}
           <div className="mt-1 flex items-center gap-2">
             {effectiveDiscount ? (
               <>
@@ -644,13 +742,9 @@ export default function Product() {
                     ""
                   )?.toLowerCase() === preferred,
               );
-              const fallbackVariant = p.variants?.[0];
-              const image =
-                matched?.images?.[0] || fallbackVariant?.images?.[0];
-              const sku = matched?.sku || fallbackVariant?.sku;
-              const priceMod =
-                matched?.priceModifier ?? fallbackVariant?.priceModifier ?? 0;
-              const price = Math.max(0, p.basePrice + (priceMod || 0));
+              const image = matched?.images?.[0] || p.images?.[0] || p.image;
+              const sku = matched?.sku || undefined;
+              const price = Math.max(0, p.basePrice || 0);
 
               // Use product-level discount only (variants no longer support individual discounts)
               const recDiscount = p.discount;

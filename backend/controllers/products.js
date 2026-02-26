@@ -18,7 +18,12 @@ async function createProduct(payload) {
     category: Number(payload.category),
     tags: Array.isArray(payload.tags) ? payload.tags : [],
     color: payload.color,
-    image: payload.image,
+    images: Array.isArray(payload.images)
+      ? payload.images
+      : payload.image
+        ? [payload.image]
+        : undefined,
+    image: Array.isArray(payload.images) ? payload.images[0] : payload.image,
     sizes: Array.isArray(payload.sizes)
       ? payload.sizes.filter((s) => ["S", "M", "L"].includes(s))
       : undefined,
@@ -66,6 +71,15 @@ async function updateProduct(id, updates) {
     set.sizes = Array.isArray(set.sizes)
       ? set.sizes.filter((s) => ["S", "M", "L"].includes(s))
       : undefined;
+  }
+
+  if (set.images !== undefined) {
+    set.images = Array.isArray(set.images) ? set.images : undefined;
+    if (Array.isArray(set.images) && set.images.length > 0) {
+      set.image = set.images[0];
+    } else {
+      set.image = undefined;
+    }
   }
 
   const result = await products.updateOne({ _id: id }, { $set: set });
