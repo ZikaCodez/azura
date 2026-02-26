@@ -43,7 +43,7 @@ export interface CartItemProps {
 export default function CartItem({
   productId,
   sku,
-  image = "https://via.placeholder.com/120x120?text=Rova",
+  image = "https://via.placeholder.com/120x120?text=Azura",
   title = "Essential Tee",
   variant = "Black / L",
   price = 499,

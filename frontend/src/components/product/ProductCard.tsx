@@ -301,85 +301,50 @@ export default function ProductCard({
     );
   }
 
-  return (
-    <div className="group relative bg-background border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+  const CardBody = (
+    <>
       <div className="relative w-full pb-[100%]">
-        {resolvedSlug ? (
-          <Link
-            to={`/product/${resolvedSlug}`}
-            aria-label={`View ${resolvedName}`}>
-            <img
-              src={resolvedImage}
-              alt={resolvedName}
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="lazy"
-              width={800}
-              height={800}
-              sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, (min-width:640px) 50vw, 75vw"
-            />
-          </Link>
-        ) : (
-          <img
-            src={resolvedImage}
-            alt={resolvedName}
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
-            width={800}
-            height={800}
-            sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, (min-width:640px) 50vw, 75vw"
-          />
-        )}
+        <img
+          src={resolvedImage}
+          alt={resolvedName}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+          width={800}
+          height={800}
+          sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, (min-width:640px) 50vw, 75vw"
+        />
         <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
       <div className="p-2">
-        {/* Header metadata: color, bundle, collection, category */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {featuredBundle && (
+            <Badge className="text-xs">
+              <Link to={`/bundles/${featuredBundle.id}`} className="underline">
+                {featuredBundle.name}
+              </Link>
+            </Badge>
+          )}
+
+          {collectionName && <Badge className="text-xs">{collectionName}</Badge>}
+
+          {categoryName && <Badge className="text-xs">{categoryName}</Badge>}
+
           {resolvedColor && (
-            <div className="flex items-center gap-2">
+            <Badge className="text-xs flex items-center gap-2">
               <span
                 aria-hidden="true"
                 className="size-4 rounded-full border"
                 style={colorStyles}
               />
-              <span className="text-xs text-muted-foreground">
-                {resolvedColor}
-              </span>
-            </div>
-          )}
-
-          {featuredBundle && (
-            <div className="text-xs text-muted-foreground">
-              <Link to={`/bundles/${featuredBundle.id}`} className="underline">
-                {featuredBundle.name}
-              </Link>
-            </div>
-          )}
-
-          {collectionName && (
-            <div className="text-xs text-muted-foreground">
-              {collectionName}
-            </div>
-          )}
-
-          {categoryName && (
-            <div className="text-xs text-muted-foreground">{categoryName}</div>
+              <span>{resolvedColor}</span>
+            </Badge>
           )}
         </div>
 
         <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
           <div className="flex-1">
-            {resolvedSlug ? (
-              <Link
-                to={`/product/${resolvedSlug}`}
-                className="text-sm font-semibold line-clamp-1">
-                {resolvedName}
-              </Link>
-            ) : (
-              <h3 className="text-sm font-semibold line-clamp-1">
-                {resolvedName}
-              </h3>
-            )}
+            <h3 className="text-sm font-semibold line-clamp-1">{resolvedName}</h3>
           </div>
 
           <div className="flex items-center gap-2">
@@ -427,17 +392,7 @@ export default function ProductCard({
           </div>
         </div>
 
-        {resolvedColor && (
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Color:</span>
-            <span
-              aria-hidden="true"
-              className="size-4 rounded-full border"
-              style={colorStyles}
-            />
-            <span className="text-xs">{resolvedColor}</span>
-          </div>
-        )}
+        {/* color is shown as a badge above; keep this block for compatibility if needed */}
 
         {resolvedSizes.length > 0 && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -450,7 +405,7 @@ export default function ProductCard({
                   type="button"
                   aria-label={`Select size ${s}`}
                   onClick={() => setSelectedSize(s)}
-                  className={`text-xs rounded-full border px-2 py-0.5 ${isSelected ? "ring-2 ring-foreground" : "ring-0"}`}>
+                  className={`text-xs rounded-2xl border px-2 py-0.5 ${isSelected ? "ring-3 ring-foreground/30 bg-accent" : "ring-0"}`}>
                   {s}
                 </button>
               );
@@ -477,28 +432,60 @@ export default function ProductCard({
           </div>
         )}
 
-        <div className="mt-3 w-full grid grid-cols-2 gap-2">
-          <Button
-            variant="default"
-            size="sm"
-            className="rounded-full w-full"
-            onClick={handleAddToCart}
-            aria-label="Add to cart">
-            <ShoppingCart className="size-4" />
-            <span className="ml-1">Add to cart</span>
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            className="rounded-full w-full"
-            onClick={handleBuyNow}
-            aria-label="Buy now">
-            <CreditCard className="size-4" />
-            Buy now
-          </Button>
         </div>
+    </>
+  );
+
+  function ClickableContent({ children }: { children: React.ReactNode }) {
+    if (resolvedSlug) {
+      return (
+        <Link
+          to={`/product/${resolvedSlug}`}
+          aria-label={`View ${resolvedName}`}
+          className="block">
+          {children}
+        </Link>
+      );
+    }
+    return <div>{children}</div>;
+  }
+
+  function ActionButtons() {
+    return (
+      <div className="mt-3 w-full grid grid-cols-2 gap-2 p-2">
+        <Button
+          variant="default"
+          size="sm"
+          className="rounded-full w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddToCart();
+          }}
+          aria-label="Add to cart">
+          <ShoppingCart className="size-4" />
+          <span className="ml-1">Add to cart</span>
+        </Button>
+
+        <Button
+          variant="secondary"
+          size="sm"
+          className="rounded-full w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBuyNow();
+          }}
+          aria-label="Buy now">
+          <CreditCard className="size-4" />
+          Buy now
+        </Button>
       </div>
+    );
+  }
+
+  return (
+    <div className="group relative bg-background border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <ClickableContent>{CardBody}</ClickableContent>
+      <ActionButtons />
     </div>
   );
 }

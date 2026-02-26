@@ -146,7 +146,7 @@ export default function Orders() {
             <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:justify-start">
               <Button asChild variant="outline" size="sm">
                 <a
-                  href="https://www.instagram.com/rova___eg/"
+                  href="https://www.instagram.com/Azura___eg/"
                   target="_blank"
                   rel="noreferrer">
                   <Instagram className="mr-1.5 size-4" />
@@ -197,7 +197,7 @@ export default function Orders() {
         <div className="flex gap-2 justify-start sm:justify-end">
           <Button asChild variant="outline" size="sm">
             <a
-              href="https://www.instagram.com/rova___eg/"
+              href="https://www.instagram.com/Azura___eg/"
               target="_blank"
               rel="noreferrer">
               <Instagram className="mr-1.5 size-4" />

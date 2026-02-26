@@ -55,9 +55,9 @@ export default function Shop() {
 
   // Static SEO + OG for Shop
   useEffect(() => {
-    const title = "Shop – Rova";
+    const title = "Shop – Azura";
     const description =
-      "Browse the full Rova collection. Filter, sort, and find your next favorite piece.";
+      "Browse the full Azura collection. Filter, sort, and find your next favorite piece.";
     const imagePath = "/logo.png";
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const image = imagePath.startsWith("http")
@@ -561,6 +561,7 @@ export default function Shop() {
                   return (
                     <ProductCard
                       key={`plp-${p._id}`}
+                      product={p}
                       productId={p._id}
                       slug={p.slug}
                       sku={firstSku}
@@ -568,7 +569,7 @@ export default function Shop() {
                       price={price}
                       image={
                         firstImage ||
-                        "https://via.placeholder.com/600x800?text=Rova"
+                        "https://via.placeholder.com/600x800?text=Azura"
                       }
                       categoryId={p.category}
                       basePrice={p.basePrice}

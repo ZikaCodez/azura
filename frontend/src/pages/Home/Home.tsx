@@ -211,7 +211,7 @@ export default function Home() {
         sku: firstSku,
         title: p.name,
         price,
-        image: firstImage || "https://via.placeholder.com/600x800?text=Rova",
+        image: firstImage || "https://via.placeholder.com/600x800?text=Azura",
         categoryId: p.category,
         variants: p.variants,
         basePrice: p.basePrice,
@@ -484,7 +484,7 @@ export default function Home() {
                             price={price}
                             image={
                               firstImage ||
-                              "https://via.placeholder.com/600x800?text=Rova"
+                              "https://via.placeholder.com/600x800?text=Azura"
                             }
                             categoryId={p.category}
                             variants={p.variants}
@@ -524,7 +524,7 @@ export default function Home() {
                         price={price}
                         image={
                           firstImage ||
-                          "https://via.placeholder.com/600x800?text=Rova"
+                          "https://via.placeholder.com/600x800?text=Azura"
                         }
                         categoryId={p.category}
                         variants={p.variants}
@@ -555,7 +555,7 @@ export default function Home() {
                   name: p.name,
                   image:
                     firstImage ||
-                    "https://via.placeholder.com/600x800?text=Rova",
+                    "https://via.placeholder.com/600x800?text=Azura",
                   category: p.category,
                   offers: {
                     "@type": "Offer",

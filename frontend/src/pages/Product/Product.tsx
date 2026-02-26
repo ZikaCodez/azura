@@ -329,10 +329,10 @@ export default function Product() {
   // Dynamic SEO + OG for product page
   useEffect(() => {
     if (!product) return;
-    const title = `${product.name} – Rova`;
+    const title = `${product.name} – Azura`;
     const description =
       product.description ||
-      "Premium local clothing from Rova. Discover fit, fabric, and finish you'll love.";
+      "Premium local clothing from Azura. Discover fit, fabric, and finish you'll love.";
     const fallbackImage = product.images?.[0] ?? product.image ?? "/logo.png";
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const image = (currentImage || fallbackImage).startsWith("http")
@@ -563,7 +563,7 @@ export default function Product() {
                   src={
                     (currentImage || product.images?.[0]) ??
                     product.image ??
-                    "https://via.placeholder.com/600x800?text=Rova"
+                    "https://via.placeholder.com/600x800?text=Azura"
                   }
                   alt={product.name}
                   className="h-full w-full object-cover border rounded-2xl"
@@ -758,7 +758,7 @@ export default function Product() {
                   title={p.name}
                   price={price}
                   image={
-                    image || "https://via.placeholder.com/600x800?text=Rova"
+                    image || "https://via.placeholder.com/600x800?text=Azura"
                   }
                   categoryId={p.category}
                   variants={p.variants}

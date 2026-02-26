@@ -8,7 +8,7 @@ type ThemeContextValue = {
   toggleTheme: () => void;
 };
 
-const THEME_STORAGE_KEY = "rova_theme";
+const THEME_STORAGE_KEY = "Azura_theme";
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 

@@ -56,7 +56,7 @@ export default function Footer() {
           {/* Social / Contact */}
           <div className="flex md:justify-end items-start gap-3">
             <a
-              href="https://www.instagram.com/rova___eg/"
+              href="https://www.instagram.com/Azura___eg/"
               aria-label="Instagram"
               title="Follow us on Instagram">
               <Button
@@ -84,7 +84,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Rova. All rights reserved.
+          © {new Date().getFullYear()} Azura. All rights reserved.
         </div>
       </div>
     </footer>

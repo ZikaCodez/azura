@@ -588,7 +588,7 @@ export default function UserOrder({
               </a>{" "}
               or{" "}
               <a
-                href="https://www.instagram.com/rova___eg/"
+                href="https://www.instagram.com/Azura___eg/"
                 target="_blank"
                 className="underline text-primary">
                 Instagram
@@ -611,7 +611,7 @@ export default function UserOrder({
               </a>{" "}
               or{" "}
               <a
-                href="https://www.instagram.com/rova___eg/"
+                href="https://www.instagram.com/Azura___eg/"
                 target="_blank"
                 className="underline text-primary">
                 Instagram
