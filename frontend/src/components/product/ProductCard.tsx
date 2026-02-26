@@ -194,7 +194,14 @@ export default function ProductCard({
         });
 
         if (isMounted) {
-          setFeaturedBundle(match ? { id: match.id, name: match.name } : null);
+          setFeaturedBundle(
+            match
+              ? {
+                  id: (match as any)._id ?? (match as any).id,
+                  name: match.name,
+                }
+              : null,
+          );
         }
       } catch {
         if (isMounted) setFeaturedBundle(null);
@@ -299,14 +306,18 @@ export default function ProductCard({
             </Badge>
           )}
 
-          {collectionName && <Badge className="text-xs">{collectionName}</Badge>}
+          {collectionName && (
+            <Badge className="text-xs">{collectionName}</Badge>
+          )}
 
           {categoryName && <Badge className="text-xs">{categoryName}</Badge>}
         </div>
 
         <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
           <div className="flex-1">
-            <h3 className="text-sm font-semibold line-clamp-1">{resolvedName}</h3>
+            <h3 className="text-sm font-semibold line-clamp-1">
+              {resolvedName}
+            </h3>
           </div>
 
           <div className="flex items-center gap-2">
@@ -393,8 +404,7 @@ export default function ProductCard({
             </Link>
           </div>
         )}
-
-        </div>
+      </div>
     </>
   );
 

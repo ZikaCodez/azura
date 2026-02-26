@@ -67,38 +67,117 @@ export default function CartDialog({
   const [productDataMap, setProductDataMap] = React.useState<
     Record<number, ProductInfo>
   >({});
+  const [bundleDataMap, setBundleDataMap] = React.useState<Record<string, any>>(
+    {},
+  );
+  const [bundleIndividualTotals, setBundleIndividualTotals] = React.useState<
+    Record<string, number>
+  >({});
 
-  // Fetch fresh product data from database when cart items change
+  // Fetch fresh product and bundle data from database when cart items change
   React.useEffect(() => {
     if (cartItems.length === 0) {
       setProductDataMap({});
+      setBundleDataMap({});
       return;
     }
 
-    const fetchProductData = async () => {
-      const uniqueProductIds = Array.from(
-        new Set(cartItems.map((item) => item.productId)),
-      );
+    const fetchData = async () => {
+      const productIds: number[] = [];
+      const bundleIds: string[] = [];
 
-      const fetchedData: Record<number, ProductInfo> = {};
+      for (const it of cartItems) {
+        // Detect bundle items by explicit bundleId or sku prefix
+        const bid = (it as any).bundleId;
+        const sku = (it as any).sku;
+        if (bid) {
+          bundleIds.push(String(bid));
+        } else if (typeof sku === "string" && sku.startsWith("bundle-")) {
+          const parts = sku.split("-");
+          if (parts.length >= 2) bundleIds.push(parts.slice(1).join("-"));
+        } else if (it.productId != null) {
+          productIds.push(it.productId);
+        }
+      }
+
+      const fetchedProducts: Record<number, ProductInfo> = {};
       await Promise.all(
-        uniqueProductIds.map(async (productId) => {
+        Array.from(new Set(productIds)).map(async (productId) => {
           try {
             const { data } = await api.get(`/products/${productId}`, {
               headers: { "x-silent": "1" },
             });
-            fetchedData[productId] = data;
+            fetchedProducts[productId] = data;
           } catch {
-            // If fetch fails, we'll fall back to cart data
+            // ignore
           }
         }),
       );
 
-      setProductDataMap(fetchedData);
+      const fetchedBundles: Record<string, any> = {};
+      await Promise.all(
+        Array.from(new Set(bundleIds)).map(async (bundleId) => {
+          try {
+            const { data } = await api.get(`/bundles/${bundleId}`, {
+              headers: { "x-silent": "1" },
+            });
+            fetchedBundles[String(bundleId)] = data;
+          } catch {
+            // ignore
+          }
+        }),
+      );
+
+      setProductDataMap(fetchedProducts);
+      setBundleDataMap(fetchedBundles);
     };
 
-    fetchProductData();
+    fetchData();
   }, [cartItems]);
+
+  // Compute individual totals for bundles (sum of member product base prices)
+  React.useEffect(() => {
+    const bundleIds = Object.keys(bundleDataMap || {});
+    if (bundleIds.length === 0) return;
+
+    let isMounted = true;
+    (async () => {
+      const totals: Record<string, number> = {};
+      await Promise.all(
+        bundleIds.map(async (bid) => {
+          try {
+            const b = bundleDataMap[bid];
+            const ids = Array.isArray(b?.productIds) ? b.productIds : [];
+            if (ids.length === 0) {
+              totals[bid] = 0;
+              return;
+            }
+            const { data } = await api.get("/products", {
+              params: {
+                filter: JSON.stringify({ _id: ids }),
+                limit: ids.length,
+              },
+              headers: { "x-silent": "1" },
+            });
+            const items = Array.isArray((data as any).items)
+              ? (data as any).items
+              : [];
+            const sum = items.reduce(
+              (s: number, p: any) => s + (p.basePrice || 0),
+              0,
+            );
+            totals[bid] = sum;
+          } catch {
+            totals[bid] = 0;
+          }
+        }),
+      );
+      if (isMounted) setBundleIndividualTotals(totals);
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [bundleDataMap]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -174,7 +253,29 @@ export default function CartDialog({
       const productId = (i as any).productId;
       const qty = (i as any).quantity ?? 1;
 
-      // Get fresh product data
+      // Support bundles and products. Detect bundle items by bundleId or sku prefix
+      const isBundle =
+        Boolean((i as any).bundleId) ||
+        (typeof (i as any).sku === "string" &&
+          (i as any).sku.startsWith("bundle-"));
+
+      if (isBundle) {
+        const bid = (i as any).bundleId
+          ? String((i as any).bundleId)
+          : String((i as any).sku)
+              .split("-")
+              .slice(1)
+              .join("-");
+        const bundle = bundleDataMap[bid];
+        const bundlePrice =
+          (bundle && (bundle.price ?? (i as any).priceAtPurchase)) ||
+          (i as any).priceAtPurchase ||
+          (i as any).price ||
+          0;
+        return sum + bundlePrice * qty;
+      }
+
+      // Product path
       const freshProduct = productDataMap[productId];
       let basePrice = (i as any).priceAtPurchase ?? (i as any).price ?? 0;
 
@@ -247,7 +348,50 @@ export default function CartDialog({
                     const productId = (item as any).productId;
                     const sku = (item as any).sku;
 
-                    // Get fresh product data from database
+                    const isBundle =
+                      Boolean((item as any).bundleId) ||
+                      (typeof sku === "string" && sku?.startsWith("bundle-"));
+
+                    if (isBundle) {
+                      const bid = (item as any).bundleId
+                        ? String((item as any).bundleId)
+                        : String(sku).split("-").slice(1).join("-");
+                      const bundle = bundleDataMap[bid];
+                      const individualTotal = bundleIndividualTotals[bid] ?? 0;
+                      const bundlePrice =
+                        (bundle &&
+                          (bundle.price ?? (item as any).priceAtPurchase)) ||
+                        (item as any).priceAtPurchase ||
+                        0;
+
+                      const mapped: CartItemProps = {
+                        productId: Number(bid),
+                        sku,
+                        image: (item as any).image ?? bundle?.image,
+                        title:
+                          bundle?.name ??
+                          (item as any).name ??
+                          (item as any).title,
+                        variant: undefined,
+                        price: bundlePrice,
+                        originalPrice:
+                          individualTotal > bundlePrice
+                            ? individualTotal
+                            : undefined,
+                        quantity: (item as any).quantity,
+                        color: undefined,
+                        size: undefined,
+                        discount: undefined,
+                        onRemove: () => {
+                          if (typeof productId === "number" && sku) {
+                            removeFromCart(productId, sku);
+                          }
+                        },
+                      };
+                      return <CartItem key={idx} {...mapped} />;
+                    }
+
+                    // Product path
                     const freshProduct = productDataMap[productId];
                     const productName =
                       freshProduct?.name ??

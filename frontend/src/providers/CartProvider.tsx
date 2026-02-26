@@ -69,9 +69,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           // fall through to merge
         }
 
-        // Merge server + local by productId+sku, summing quantities and preferring local variant details
+        // Merge server + local by product/bundle id + sku, summing quantities and preferring local variant details
         const keyFor = (it: any) =>
-          `${String(it.productId)}::${String(it.sku)}`;
+          `${it.bundleId ? `bundle:${String(it.bundleId)}` : `product:${String(it.productId)}`}::${String(it.sku)}`;
         const map = new Map<string, CartItem>();
         (serverItems || []).forEach((it: any) => {
           map.set(keyFor(it), { ...it });
@@ -283,28 +283,49 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Validate product & variant existence for each unique productId (silent)
-      const uniqueIds = Array.from(
-        new Set(serverItems.map((i: any) => i.productId)),
+      // Validate product & bundle existence for each unique id (silent)
+      const uniqueKeys = Array.from(
+        new Set(
+          serverItems.map((i: any) =>
+            i.bundleId ? `b:${String(i.bundleId)}` : `p:${String(i.productId)}`,
+          ),
+        ),
       );
       const productMap: Record<string, any | null> = {};
       await Promise.all(
-        uniqueIds.map(async (id) => {
+        uniqueKeys.map(async (key) => {
           try {
-            const r = await api.get(`/products/${id}`, {
-              headers: { "x-silent": "1" },
-            });
-            productMap[String(id)] = r.data || null;
+            if (String(key).startsWith("p:")) {
+              const id = String(key).slice(2);
+              const r = await api.get(`/products/${id}`, {
+                headers: { "x-silent": "1" },
+              });
+              productMap[String(key)] = r.data || null;
+            } else {
+              const id = String(key).slice(2);
+              const r = await api.get(`/bundles/${id}`, {
+                headers: { "x-silent": "1" },
+              });
+              productMap[String(key)] = r.data || null;
+            }
           } catch {
-            productMap[String(id)] = null;
+            productMap[String(key)] = null;
           }
         }),
       );
 
       const filtered = serverItems.filter((it: any) => {
-        const p = productMap[String(it.productId)];
+        const key = it.bundleId
+          ? `b:${String(it.bundleId)}`
+          : `p:${String(it.productId)}`;
+        const p = productMap[String(key)];
         if (!p) return false;
-        if (Array.isArray(p.variants) && p.variants.length > 0) {
+        // If this is a product with variants, validate SKU; bundles are accepted as-is
+        if (
+          key.startsWith("p:") &&
+          Array.isArray(p.variants) &&
+          p.variants.length > 0
+        ) {
           const hasVariant = p.variants.some(
             (v: any) => String(v.sku) === String(it.sku),
           );
@@ -344,26 +365,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const local = state.items || [];
       if (!local || local.length === 0) return;
 
-      const uniqueIds = Array.from(new Set(local.map((i: any) => i.productId)));
+      const uniqueKeys = Array.from(
+        new Set(
+          local.map((i: any) =>
+            i.bundleId ? `b:${String(i.bundleId)}` : `p:${String(i.productId)}`,
+          ),
+        ),
+      );
       const productMap: Record<string, any | null> = {};
       await Promise.all(
-        uniqueIds.map(async (id) => {
+        uniqueKeys.map(async (key) => {
           try {
-            const r = await api.get(`/products/${id}`, {
-              headers: { "x-silent": "1" },
-            });
-            productMap[String(id)] = r.data || null;
+            if (String(key).startsWith("p:")) {
+              const id = String(key).slice(2);
+              const r = await api.get(`/products/${id}`, {
+                headers: { "x-silent": "1" },
+              });
+              productMap[String(key)] = r.data || null;
+            } else {
+              const id = String(key).slice(2);
+              const r = await api.get(`/bundles/${id}`, {
+                headers: { "x-silent": "1" },
+              });
+              productMap[String(key)] = r.data || null;
+            }
           } catch {
-            productMap[String(id)] = null;
+            productMap[String(key)] = null;
           }
         }),
       );
 
       const filtered = local.filter((it: any) => {
-        const p = productMap[String(it.productId)];
+        const key = it.bundleId
+          ? `b:${String(it.bundleId)}`
+          : `p:${String(it.productId)}`;
+        const p = productMap[String(key)];
         if (!p) return false;
         // If variants exist, require matching sku. Otherwise accept the item.
-        if (Array.isArray(p.variants) && p.variants.length > 0) {
+        if (
+          key.startsWith("p:") &&
+          Array.isArray(p.variants) &&
+          p.variants.length > 0
+        ) {
           const hasVariant = p.variants.some(
             (v: any) => String(v.sku) === String(it.sku),
           );

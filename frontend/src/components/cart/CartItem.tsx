@@ -93,10 +93,82 @@ export default function CartItem({
     nextColor?: string;
     nextSize?: string;
   } | null>(null);
+  const [isBundle, setIsBundle] = useState(false);
+  const [bundleInfo, setBundleInfo] = useState<any | null>(null);
+  const [bundleProducts, setBundleProducts] = useState<any[]>([]);
+  const [bundleOpen, setBundleOpen] = useState(false);
 
   useEffect(() => {
     async function loadProduct() {
       try {
+        // If this cart row is a bundle (sku like "bundle-<id>"), fetch bundle
+        // metadata and its member products so we can show a breakdown in the
+        // cart row. Otherwise, load the product and its variants as before.
+        if (typeof sku === "string" && sku.startsWith("bundle-")) {
+          setIsBundle(true);
+          const bid = String(sku).replace(/^bundle-/, "");
+          try {
+            const { data } = await api.get(`/bundles/${bid}`, {
+              headers: { "x-silent": "1" },
+            });
+            setBundleInfo(data || null);
+            const ids = Array.isArray(data?.productIds) ? data.productIds : [];
+            if (ids.length > 0) {
+              const r = await api.get("/products", {
+                params: {
+                  filter: JSON.stringify({ _id: ids }),
+                  limit: ids.length,
+                },
+                headers: { "x-silent": "1" },
+              });
+              const items = Array.isArray((r as any).data?.items)
+                ? (r as any).data.items
+                : [];
+              setBundleProducts(items);
+            }
+          } catch {
+            // ignore bundle fetch errors
+          }
+          return;
+        }
+
+        // Attempt to detect a bundle by productId as a fallback (some mappings
+        // set productId to the bundle id). If a bundle exists, treat it like
+        // a bundle item.
+        if (typeof productId === "number") {
+          try {
+            const { data: maybeBundle } = await api.get(
+              `/bundles/${productId}`,
+              {
+                headers: { "x-silent": "1" },
+              },
+            );
+            if (maybeBundle) {
+              setIsBundle(true);
+              setBundleInfo(maybeBundle || null);
+              const ids = Array.isArray(maybeBundle?.productIds)
+                ? maybeBundle.productIds
+                : [];
+              if (ids.length > 0) {
+                const r = await api.get("/products", {
+                  params: {
+                    filter: JSON.stringify({ _id: ids }),
+                    limit: ids.length,
+                  },
+                  headers: { "x-silent": "1" },
+                });
+                const items = Array.isArray((r as any).data?.items)
+                  ? (r as any).data.items
+                  : [];
+                setBundleProducts(items);
+              }
+              return;
+            }
+          } catch {
+            // not a bundle; continue to product path
+          }
+        }
+
         if (typeof productId !== "number") return;
         const res = await api.get<{
           items: Array<{
@@ -656,6 +728,55 @@ export default function CartItem({
           </div>
         </div>
       </div>
+      {/* Bundle breakdown */}
+      {isBundle && bundleInfo && (
+        <div className="mt-3 md:mt-4">
+          <button
+            type="button"
+            onClick={() => setBundleOpen((s) => !s)}
+            className="text-sm text-muted-foreground underline">
+            {bundleOpen ? "Hide bundle items" : "Show bundle items"}
+          </button>
+          {bundleOpen && (
+            <div className="mt-2 border rounded-md p-2 bg-muted/5">
+              {bundleProducts.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  Loading items…
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {bundleProducts.map((bp) => (
+                    <div key={bp._id} className="flex items-center gap-3">
+                      <img
+                        src={bp.images?.[0] ?? bp.image}
+                        alt={bp.name}
+                        className="w-10 h-10 object-cover rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{bp.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          EGP {Math.max(0, bp.basePrice || 0).toFixed(0)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="pt-2 border-t text-sm text-muted-foreground">
+                    Bundle price:{" "}
+                    <span className="font-semibold text-primary">
+                      EGP {price?.toFixed(0)}
+                    </span>
+                    {originalPrice && originalPrice > price && (
+                      <div className="text-[12px] text-green-600">
+                        You save EGP {(originalPrice - price).toFixed(0)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

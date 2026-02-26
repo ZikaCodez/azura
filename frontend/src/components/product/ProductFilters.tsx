@@ -235,33 +235,35 @@ export default function ProductFilters({
       </div>
 
       {/* Collection (optional) */}
-      <div>
-        <h5 className="text-xs font-medium text-muted-foreground">
-          Collection
-        </h5>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {collections.map((col) => {
-            const selected =
-              (selectedCollection || "").toLowerCase() === col.toLowerCase();
-            return (
-              <Button
-                key={col}
-                variant={selected ? "default" : "outline"}
-                size="sm"
-                className={cn("rounded-full", selected && "font-semibold")}
-                onClick={() =>
-                  setSelectedCollection((prev) =>
-                    (prev || "").toLowerCase() === col.toLowerCase()
-                      ? null
-                      : col,
-                  )
-                }>
-                {col}
-              </Button>
-            );
-          })}
+      {collections && collections.length > 0 && (
+        <div>
+          <h5 className="text-xs font-medium text-muted-foreground">
+            Collection
+          </h5>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {collections.map((col) => {
+              const selected =
+                (selectedCollection || "").toLowerCase() === col.toLowerCase();
+              return (
+                <Button
+                  key={col}
+                  variant={selected ? "default" : "outline"}
+                  size="sm"
+                  className={cn("rounded-full", selected && "font-semibold")}
+                  onClick={() =>
+                    setSelectedCollection((prev) =>
+                      (prev || "").toLowerCase() === col.toLowerCase()
+                        ? null
+                        : col,
+                    )
+                  }>
+                  {col}
+                </Button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Size (toggle buttons with check) */}
       <div>

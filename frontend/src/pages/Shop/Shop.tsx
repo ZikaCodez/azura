@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import SectionHeader from "@/components/common/SectionHeader";
-import ProductCard from "@/components/product/ProductCard";
-import BundleCard from "@/components/product/BundleCard";
+import ItemCard from "@/components/product/ItemCard";
 import ProductFilters from "@/components/product/ProductFilters";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,6 +48,7 @@ export default function Shop() {
   const [priceMax, setPriceMax] = useState<number>(2000);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [offer, setOffer] = useState<"discounts" | "bundles" | null>(null);
   const [sortKey, setSortKey] = useState<string>("createdAt_desc");
   const [total, setTotal] = useState<number>(0);
   // Infinite scroll: control how many items are displayed progressively
@@ -216,7 +216,12 @@ export default function Shop() {
               _ts: Date.now(),
             },
           });
-          setAllBundles(br.data.items || []);
+          const bundlesData = Array.isArray(br.data)
+            ? br.data
+            : Array.isArray((br.data as any)?.items)
+              ? (br.data as any).items
+              : [];
+          setAllBundles(bundlesData || []);
         } catch {
           setAllBundles([]);
         }
@@ -300,16 +305,43 @@ export default function Shop() {
 
   // Merge filtered products and bundles into a single timeline sorted by createdAt
   const mergedItems = useMemo(() => {
-    const prodItems = filteredProducts.map((p) => ({
+    // If the user selected the "bundles" offer, show only bundles.
+    if (offer === "bundles") {
+      const bundleItems = (allBundles || []).map((b) => ({
+        kind: "bundle" as const,
+        createdAt: b.createdAt || (b as any).createdAt || 0,
+        item: b,
+      }));
+      bundleItems.sort((a, b) => {
+        const ad = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bd = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bd - ad;
+      });
+      return bundleItems;
+    }
+
+    // Otherwise start from filtered products (may be further filtered for discounts)
+    let prodList = filteredProducts;
+    if (offer === "discounts") {
+      prodList = prodList.filter((p) => !!p.discount && p.discount.isActive);
+    }
+
+    const prodItems = prodList.map((p) => ({
       kind: "product" as const,
       createdAt: p.createdAt || (p as any).createdAt || 0,
       item: p,
     }));
-    const bundleItems = (allBundles || []).map((b) => ({
-      kind: "bundle" as const,
-      createdAt: b.createdAt || b.createdAt || 0,
-      item: b,
-    }));
+
+    // When discounts filter is active we intentionally exclude bundles.
+    const bundleItems =
+      offer === "discounts"
+        ? []
+        : (allBundles || []).map((b) => ({
+            kind: "bundle" as const,
+            createdAt: b.createdAt || (b as any).createdAt || 0,
+            item: b,
+          }));
+
     const combined = [...prodItems, ...bundleItems];
     combined.sort((a, b) => {
       const ad = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -427,6 +459,7 @@ export default function Shop() {
                 setPriceMax(f.priceMax);
                 setSelectedSizes(f.sizes.map((s) => s.toLowerCase()));
                 setSelectedColors(f.colors.map((c) => c.toLowerCase()));
+                setOffer(f.offer ?? null);
                 setVisibleCount(6);
               }}
               selectedc={category}
@@ -502,6 +535,7 @@ export default function Shop() {
                           setSelectedColors(
                             f.colors.map((c) => c.toLowerCase()),
                           );
+                          setOffer(f.offer ?? null);
                           setVisibleCount(6);
                         }}
                         selectedc={category}
@@ -591,33 +625,19 @@ export default function Shop() {
                 {mergedItems.slice(0, visibleCount).map((mi, idx) => {
                   if (mi.kind === "product") {
                     const p = mi.item as Product;
-                    const firstImage = p.images?.[0] ?? p.image ?? p.thumbnail;
-                    const firstSku = undefined;
-                    const price = Math.max(0, p.basePrice || 0);
                     return (
-                      <ProductCard
+                      <ItemCard
                         key={`plp-${p._id}`}
+                        kind="product"
                         product={p}
-                        productId={p._id}
-                        slug={p.slug}
-                        sku={firstSku}
-                        title={p.name}
-                        price={price}
-                        image={
-                          firstImage ||
-                          "https://via.placeholder.com/600x800?text=Azura"
-                        }
-                        categoryId={p.category}
-                        basePrice={p.basePrice}
-                        discount={p.discount}
                       />
                     );
                   }
-                  // bundle
                   const b = mi.item as any;
                   return (
-                    <BundleCard
+                    <ItemCard
                       key={`bundle-${String(b._id || b.id || idx)}`}
+                      kind="bundle"
                       bundle={b}
                     />
                   );
