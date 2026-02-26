@@ -8,6 +8,8 @@ export interface IDiscount {
   endDate?: Date;
 }
 
+export type ProductSize = "S" | "M" | "L";
+
 export interface IProduct {
   _id?: number; // MongoDB ObjectId
   name: string;
@@ -18,6 +20,7 @@ export interface IProduct {
   tags: string[]; // e.g., ["summer", "minimal"]
   color: IColor["_id"]; // Single color
   image: string; // Main image
+  sizes?: ProductSize[]; // Optional
   isFeatured: boolean;
   isActive: boolean; // For "Soft Deletes"
   createdAt: Date;

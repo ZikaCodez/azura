@@ -1410,6 +1410,19 @@ interface IUser {
 }
 ```
 
+### ICartItem
+```ts
+interface ICartItem {
+  productId: number;
+  name: string;
+  quantity: number;
+  priceAtPurchase: number;
+  image?: string;
+  color?: string;
+  size?: "S" | "M" | "L";
+}
+```
+
 ### IOrder
 ```ts
 interface IOrder {
@@ -1432,6 +1445,22 @@ interface IOrder {
 }
 ```
 
+### IOrderItem
+```ts
+interface IOrderItem {
+  type: OrderItemType;
+  productId?: number;
+  bundleId?: string;
+  name: string;
+  quantity: number;
+  priceAtPurchase: number;
+  originalPrice?: number;
+  image: string;
+  color?: string;
+  size?: "S" | "M" | "L";
+}
+```
+
 ### IProduct
 ```ts
 interface IProduct {
@@ -1444,6 +1473,7 @@ interface IProduct {
   tags: string[];
   color: string;
   image: string;
+  sizes?: ("S" | "M" | "L")[];
   isFeatured: boolean;
   isActive: boolean;
   createdAt: Date;

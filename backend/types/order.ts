@@ -1,4 +1,5 @@
 import { IAddress } from "./user";
+import { ProductSize } from "./product";
 
 export type OrderItemType = "product" | "bundle";
 
@@ -12,6 +13,7 @@ export interface IOrderItem {
   originalPrice?: number; // For bundle, sum of product prices
   image: string;
   color?: string;
+  size?: ProductSize;
 }
 
 export interface IOrder {

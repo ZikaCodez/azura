@@ -19,6 +19,9 @@ async function createProduct(payload) {
     tags: Array.isArray(payload.tags) ? payload.tags : [],
     color: payload.color,
     image: payload.image,
+    sizes: Array.isArray(payload.sizes)
+      ? payload.sizes.filter((s) => ["S", "M", "L"].includes(s))
+      : undefined,
     isFeatured: !!payload.isFeatured,
     isActive: payload.isActive !== undefined ? !!payload.isActive : true,
     discount: payload.discount || null,
@@ -59,6 +62,11 @@ async function updateProduct(id, updates) {
   if (!Number.isInteger(id)) throw new Error("id must be integer");
 
   const set = { ...updates, updatedAt: new Date() };
+  if (set.sizes !== undefined) {
+    set.sizes = Array.isArray(set.sizes)
+      ? set.sizes.filter((s) => ["S", "M", "L"].includes(s))
+      : undefined;
+  }
 
   const result = await products.updateOne({ _id: id }, { $set: set });
   if (result.matchedCount === 0) {

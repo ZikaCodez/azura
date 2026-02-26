@@ -1,4 +1,5 @@
 import { CustomAccessory } from "./customAccessory";
+import { ProductSize } from "./product";
 
 export interface IAddress {
   street: string;
@@ -32,4 +33,5 @@ export interface ICartItem {
   priceAtPurchase: number;
   image?: string;
   color?: string;
+  size?: ProductSize;
 }
