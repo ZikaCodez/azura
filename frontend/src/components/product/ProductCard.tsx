@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CreditCard, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
@@ -16,7 +16,6 @@ import {
 } from "@/lib/discounts";
 
 import { useCart } from "@/providers/CartProvider";
-import { useColors } from "@/hooks/useColors";
 
 import type { Discount } from "@/types/offer";
 import type { ProductListItem } from "@/types/product";
@@ -69,26 +68,6 @@ function parseProductIds(value: unknown): Array<string | number> {
   return [];
 }
 
-function getColorStyles(hex?: string): {
-  backgroundColor: string;
-  borderColor: string;
-} {
-  if (!hex) return { backgroundColor: "#e5e7eb", borderColor: "#9ca3af" };
-  const h = hex.replace(/^#/, "");
-  if (h.length !== 6)
-    return { backgroundColor: "#e5e7eb", borderColor: "#9ca3af" };
-
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-  return {
-    backgroundColor: `#${h}`,
-    borderColor: luminance > 180 ? "#9ca3af" : "#ffffff",
-  };
-}
-
 export default function ProductCard({
   product,
   title = "Essential Tee",
@@ -108,7 +87,6 @@ export default function ProductCard({
 }: ProductCardProps) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { colorsMap } = useColors();
 
   const resolvedId = product?._id ?? productId;
   const resolvedName = product?.name ?? title;
@@ -233,11 +211,6 @@ export default function ProductCard({
   const finalPrice = calculateDiscountedPrice(resolvedPrice, resolvedDiscount);
   const discountLabel = getDiscountLabel(resolvedDiscount);
 
-  const colorHex = resolvedColor
-    ? colorsMap[resolvedColor.toLowerCase()]
-    : undefined;
-  const colorStyles = useMemo(() => getColorStyles(colorHex), [colorHex]);
-
   const handleAddToCart = () => {
     if (resolvedId == null) {
       onQuickAdd?.();
@@ -329,17 +302,6 @@ export default function ProductCard({
           {collectionName && <Badge className="text-xs">{collectionName}</Badge>}
 
           {categoryName && <Badge className="text-xs">{categoryName}</Badge>}
-
-          {resolvedColor && (
-            <Badge className="text-xs flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="size-4 rounded-full border"
-                style={colorStyles}
-              />
-              <span>{resolvedColor}</span>
-            </Badge>
-          )}
         </div>
 
         <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
